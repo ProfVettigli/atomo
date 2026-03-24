@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurazione Elettronica | AtomQuant</title>
+    <meta name="description"
+        content="Esplora la configurazione elettronica degli atomi: aggiungi elettroni e osserva il riempimento degli orbitali in tempo reale." />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* ── ORBITAL BUILDER ── */
+        .builder-area {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Atom canvas */
+        .atom-canvas-wrap {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        #atomCanvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+        }
+
+        /* Control panel */
+        .ctrl-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .el-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.35rem;
+        }
+
+        .el-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 0.25rem;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+        }
+
+        .el-btn:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-blue);
+            color: var(--accent-cyan);
+        }
+
+        .el-btn.active {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* Manual controls */
+        .manual-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .count-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            border: 1px solid var(--border-bright);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .count-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-blue);
+        }
+
+        .count-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .electron-count {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* Orbital levels display */
+        .orb-levels {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .orb-levels-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .orb-level-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .orb-level-label {
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            font-family: 'Courier New', monospace;
+            width: 28px;
+        }
+
+        .orb-box-row {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .orb-slot {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            position: relative;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .orb-slot.filled-up {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.6);
+        }
+
+        .orb-slot.filled-both {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .orb-slot .spin-up {
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .orb-slot .spin-down {
+            color: var(--accent-purple);
+            font-size: 0.9rem;
+            line-height: 1;
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.65rem;
+        }
+
+        .orb-type-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Config string */
+        .config-string {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: var(--accent-cyan);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 1rem;
+            min-height: 48px;
+            word-break: break-all;
+            line-height: 1.7;
+        }
+
+        .config-part {
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+
+        .config-part.hl {
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        /* Rules tabs */
+        .tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tab-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-blue);
+            color: var(--accent-cyan);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Energy ladder */
+        .energy-ladder {
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .energy-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.35rem;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .energy-step.active-fill {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .energy-step.done-fill {
+            background: rgba(16, 185, 129, 0.07);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .energy-step.empty-fill {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+        }
+
+        .es-label {
+            font-family: 'Courier New', monospace;
+            color: var(--accent-gold);
+            width: 32px;
+        }
+
+        .es-bar {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .es-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        .es-count {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            width: 40px;
+            text-align: right;
+        }
+
+        /* Atom preview element badge */
+        .atom-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .atom-badge-sym {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--accent-cyan);
+        }
+
+        .atom-badge-info {
+            text-align: left;
+        }
+
+        .atom-badge-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .atom-badge-z {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a class="nav-logo" href="index.html">⚛ AtomQuant</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Modello Atomico</a></li>
+                <li><a href="page2.html">Tavola Periodica</a></li>
+                <li><a href="page3.html" class="active">Config. Elettronica</a></li>
+                <li><a href="page4.html">Atomi, Ioni & Isotopi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero" style="padding-top:3.5rem;padding-bottom:2rem">
+            <div class="hero-badge">🔵 Orbitali & Configurazione</div>
+            <h1>La <span class="gradient-text">Configurazione Elettronica</span></h1>
+            <p class="hero-desc">Inizia dall'atomo di idrogeno e aggiungi elettroni uno alla volta per vedere come si
+                riempiono gli orbitali seguendo le regole della meccanica quantistica.</p>
+        </div>
+
+        <div class="section" style="padding-top:0">
+
+            <!-- RULES SECTION -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-builder" onclick="switchTab('builder')">🔬 Costruttore
+                    Atomico</button>
+                <button class="tab-btn" id="tab-rules" onclick="switchTab('rules')">📋 Regole di Riempimento</button>
+                <button class="tab-btn" id="tab-aufbau" onclick="switchTab('aufbau')">⚡ Ordine di Aufbau</button>
+            </div>
+
+            <!-- TAB: BUILDER -->
+            <div class="tab-content active" id="content-builder">
+                <div class="builder-area">
+
+                    <!-- LEFT: Atom Visualization -->
+                    <div>
+                        <div class="atom-canvas-wrap">
+                            <div style="text-align:center;margin-bottom:0.75rem" id="atom-badge-area">
+                                <div class="atom-badge">
+                                    <div class="atom-badge-sym" id="badge-sym">H</div>
+                                    <div class="atom-badge-info">
+                                        <div class="atom-badge-name" id="badge-name">Idrogeno</div>
+                                        <div class="atom-badge-z" id="badge-z">Z = 1 · 1 elettrone</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <canvas id="atomCanvas" width="380" height="320"></canvas>
+                            <div style="margin-top:1rem">
+                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.5rem">
+                                    CONFIGURAZIONE ELETTRONICA</div>
+                                <div class="config-string" id="config-display">1s¹</div>
+                            </div>
+                        </div>
+
+                        <!-- Energy level bar chart -->
+                        <div class="card" style="margin-top:1rem;">
+                            <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem">⚡ Livelli di
+                                energia (elettroni per sottolivello)</div>
+                            <div id="energy-ladder"></div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Controls -->
+                    <div class="ctrl-panel">
+                        <!-- Manual electron counter -->
+                        <div class="card">
+                            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">Numero di
+                                elettroni</div>
+                            <div class="manual-ctrl" style="justify-content:center">
+                                <button class="count-btn" id="btn-minus" onclick="changeElectrons(-1)">−</button>
+                                <div class="electron-count" id="e-count">1</div>
+                                <button class="count-btn" id="btn-plus" onclick="changeElectrons(1)">+</button>
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:0.5rem">
+                                max 36 elettroni (Kr)</div>
+                        </div>
+
+                        <!-- Preset elements -->
+                        <div class="card">
+                            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">Scegli un
+                                elemento</div>
+                            <div class="el-selector" id="el-selector"></div>
+                        </div>
+
+                        <!-- Orbital slots -->
+                        <div class="card orb-levels">
+                            <div class="orb-levels-title">Riempimento Orbitali</div>
+                            <div id="orb-slots"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: RULES -->
+            <div class="tab-content" id="content-rules">
+                <div class="card-grid" style="margin-bottom:1.5rem">
+                    <div class="card">
+                        <div class="icon-circle icon-blue">1</div>
+                        <h3 style="margin-bottom:0.6rem">Principio di Aufbau</h3>
+                        <p style="font-size:0.88rem;color:var(--text-secondary)">Gli elettroni occupano prima gli
+                            orbitali a <strong style="color:var(--text-primary)">energia più bassa</strong>, poi quelli
+                            a energia progressivamente maggiore. L'ordine è: 1s → 2s → 2p → 3s → 3p → 4s → 3d → 4p → …
+                        </p>
+                        <div class="formula" style="margin-top:1rem">ε(ns) &lt; ε(np) &lt; ε(nd) &lt; ε(nf)</div>
+                    </div>
+                    <div class="card">
+                        <div class="icon-circle icon-purple">2</div>
+                        <h3 style="margin-bottom:0.6rem">Regola di Hund</h3>
+                        <p style="font-size:0.88rem;color:var(--text-secondary)">Tra gli orbitali dello stesso
+                            sottolivello, ogni orbitale viene occupato prima con <strong
+                                style="color:var(--text-primary)">un elettrone di spin parallelo</strong> (↑). Solo dopo
+                            si aggiunge il secondo elettrone di spin opposto (↓).</p>
+                        <div style="display:flex;gap:0.4rem;margin-top:1rem;justify-content:center">
+                            <div class="orb-slot filled-up" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span></div>
+                            <div class="orb-slot filled-up" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span></div>
+                            <div class="orb-slot filled-up" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span></div>
+                            <span style="color:var(--text-secondary);align-self:center">→</span>
+                            <div class="orb-slot filled-both" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span><span class="spin-down">↓</span></div>
+                            <div class="orb-slot filled-up" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span></div>
+                            <div class="orb-slot filled-up" style="width:38px;height:38px"><span
+                                    class="spin-up">↑</span></div>
+                        </div>
+                        <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:0.5rem">
+                            Esempio: 3 e⁻ nel sottolivello 2p → tutti spin-up prima</p>
+                    </div>
+                    <div class="card">
+                        <div class="icon-circle icon-pink">3</div>
+                        <h3 style="margin-bottom:0.6rem">Principio di Esclusione di Pauli</h3>
+                        <p style="font-size:0.88rem;color:var(--text-secondary)">Ogni orbitale può contenere al massimo
+                            <strong style="color:var(--text-primary)">2 elettroni</strong>, e devono avere spin opposti
+                            (↑↓). Due elettroni non possono avere gli stessi 4 numeri quantici.</p>
+                        <div style="display:flex;gap:0.4rem;margin-top:1rem;justify-content:center">
+                            <div class="orb-slot filled-both" style="width:50px;height:50px;flex-direction:column">
+                                <span style="color:var(--accent-cyan);font-size:1.1rem">↑</span>
+                                <span style="color:var(--accent-purple);font-size:1.1rem">↓</span>
+                            </div>
+                        </div>
+                        <div
+                            style="font-family:'Courier New',monospace;font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:0.5rem">
+                            ms = +½ e ms = −½</div>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <h3 style="margin-bottom:0.75rem">🎯 Come leggere la configurazione elettronica</h3>
+                    <div
+                        style="font-family:'Courier New',monospace;font-size:1.1rem;color:var(--accent-cyan);margin-bottom:0.75rem;text-align:center">
+                        2p⁴</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;font-size:0.85rem">
+                        <div><span
+                                style="color:var(--accent-gold);font-size:1.1rem;font-family:'Courier New',monospace">2</span><br><span
+                                style="color:var(--text-secondary)">Numero di livello principale (n=2, guscio L)</span>
+                        </div>
+                        <div><span
+                                style="color:var(--accent-purple);font-size:1.1rem;font-family:'Courier New',monospace">p</span><br><span
+                                style="color:var(--text-secondary)">Tipo di sottolivello (s, p, d, f)</span></div>
+                        <div><span
+                                style="color:var(--accent-green);font-size:1.1rem;font-family:'Courier New',monospace">⁴</span><br><span
+                                style="color:var(--text-secondary)">Numero di elettroni presenti in quel
+                                sottolivello</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: AUFBAU ORDER -->
+            <div class="tab-content" id="content-aufbau">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem">Ordine di riempimento (Aufbau)</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1.25rem">Regola del (n+ℓ):
+                            tra due sottolivelli, si riempie prima quello con (n+ℓ) minore. A parità, si sceglie n
+                            minore.</p>
+                        <div style="font-family:'Courier New',monospace;font-size:0.9rem;line-height:2.2">
+                            <div><span style="color:var(--accent-cyan)">1s</span> → <span
+                                    style="color:var(--accent-cyan)">2s</span> → <span
+                                    style="color:var(--accent-purple)">2p</span> → <span
+                                    style="color:var(--accent-cyan)">3s</span> → <span
+                                    style="color:var(--accent-purple)">3p</span> →</div>
+                            <div><span style="color:var(--accent-cyan)">4s</span> → <span
+                                    style="color:var(--accent-gold)">3d</span> → <span
+                                    style="color:var(--accent-purple)">4p</span> → <span
+                                    style="color:var(--accent-cyan)">5s</span> → <span
+                                    style="color:var(--accent-gold)">4d</span> →</div>
+                            <div><span style="color:var(--accent-purple)">5p</span> → <span
+                                    style="color:var(--accent-cyan)">6s</span> → <span
+                                    style="color:var(--accent-pink)">4f</span> → <span
+                                    style="color:var(--accent-gold)">5d</span> → <span
+                                    style="color:var(--accent-purple)">6p</span> → …</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem">Capacità massima per guscio</h3>
+                        <div style="font-size:0.85rem">
+                            <div
+                                style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+                                <span style="color:var(--accent-gold)">Guscio n=1 (K)</span><span>2 elettroni
+                                    (1s²)</span></div>
+                            <div
+                                style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+                                <span style="color:var(--accent-blue)">Guscio n=2 (L)</span><span>8 elettroni (2s²
+                                    2p⁶)</span></div>
+                            <div
+                                style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+                                <span style="color:var(--accent-purple)">Guscio n=3 (M)</span><span>18 elettroni (3s²
+                                    3p⁶ 3d¹⁰)</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.6rem 0"><span
+                                    style="color:var(--accent-green)">Guscio n=4 (N)</span><span>32 elettroni (4s² 4p⁶
+                                    4d¹⁰ 4f¹⁴)</span></div>
+                        </div>
+                        <div class="formula" style="margin-top:1rem">Max e⁻ per guscio n = 2n²</div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end section -->
+
+        <div class="page-nav">
+            <a href="page2.html" class="btn btn-outline">← Tavola Periodica</a>
+            <a href="page4.html" class="btn btn-primary">Atomi, Ioni & Isotopi →</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>⚛ AtomQuant – Fisica Quantistica Interattiva &nbsp;|&nbsp; Pagina 3 di 4</p>
+    </footer>
+
+    <script>
+        // ── DATA ──
+        const AUFBAU = [
+            { label: '1s', max: 2, n: 1, type: 's', color: '#06b6d4' },
+            { label: '2s', max: 2, n: 2, type: 's', color: '#06b6d4' },
+            { label: '2p', max: 6, n: 2, type: 'p', color: '#8b5cf6' },
+            { label: '3s', max: 2, n: 3, type: 's', color: '#06b6d4' },
+            { label: '3p', max: 6, n: 3, type: 'p', color: '#8b5cf6' },
+            { label: '4s', max: 2, n: 4, type: 's', color: '#06b6d4' },
+            { label: '3d', max: 10, n: 3, type: 'd', color: '#f59e0b' },
+            { label: '4p', max: 6, n: 4, type: 'p', color: '#8b5cf6' },
+            { label: '5s', max: 2, n: 5, type: 's', color: '#06b6d4' },
+            { label: '4d', max: 10, n: 4, type: 'd', color: '#f59e0b' },
+            { label: '5p', max: 6, n: 5, type: 'p', color: '#8b5cf6' },
+            { label: '6s', max: 2, n: 6, type: 's', color: '#06b6d4' },
+        ];
+
+        const ELEMENTS_P3 = [
+            [1, 'H', 'Idrogeno'], [2, 'He', 'Elio'], [3, 'Li', 'Litio'], [4, 'Be', 'Berillio'],
+            [5, 'B', 'Boro'], [6, 'C', 'Carbonio'], [7, 'N', 'Azoto'], [8, 'O', 'Ossigeno'],
+            [9, 'F', 'Fluoro'], [10, 'Ne', 'Neon'], [11, 'Na', 'Sodio'], [12, 'Mg', 'Magnesio'],
+            [13, 'Al', 'Alluminio'], [14, 'Si', 'Silicio'], [15, 'P', 'Fosforo'], [16, 'S', 'Zolfo'],
+            [17, 'Cl', 'Cloro'], [18, 'Ar', 'Argon'], [19, 'K', 'Potassio'], [20, 'Ca', 'Calcio'],
+        ];
+
+        // Superscript map
+        function toSup(n) {
+            const sup = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '10': '¹⁰' };
+            return sup[String(n)] || String(n);
+        }
+
+        function getConfig(electrons) {
+            let remaining = electrons;
+            const filled = [];
+            for (const sub of AUFBAU) {
+                if (remaining <= 0) break;
+                const inThis = Math.min(remaining, sub.max);
+                filled.push({ ...sub, count: inThis });
+                remaining -= inThis;
+            }
+            return filled;
+        }
+
+        function configString(filled) {
+            return filled.map(s => s.label + toSup(s.count)).join(' ');
+        }
+
+        // ── BUILD PRESET BUTTONS ──
+        const selDiv = document.getElementById('el-selector');
+        ELEMENTS_P3.forEach(([z, sym, name]) => {
+            const btn = document.createElement('button');
+            btn.className = 'el-btn' + (z === 1 ? ' active' : '');
+            btn.textContent = sym;
+            btn.title = `${name} (Z=${z})`;
+            btn.id = `el-btn-${z}`;
+            btn.onclick = () => setElectrons(z);
+            selDiv.appendChild(btn);
+        });
+
+        let currentE = 1;
+
+        function setElectrons(n) {
+            currentE = Math.max(1, Math.min(36, n));
+            updateAll();
+        }
+        function changeElectrons(delta) { setElectrons(currentE + delta); }
+
+        function updateAll() {
+            const e = currentE;
+            // Badge
+            const el = ELEMENTS_P3.find(x => x[0] === e) || [e, 'e⁻', `Z = ${e}`];
+            document.getElementById('badge-sym').textContent = el[1] || '?';
+            document.getElementById('badge-name').textContent = el[2] || '';
+            document.getElementById('badge-z').textContent = `Z = ${e} · ${e} elettron${e === 1 ? 'e' : 'i'}`;
+            document.getElementById('e-count').textContent = e;
+            document.getElementById('btn-minus').disabled = e <= 1;
+            document.getElementById('btn-plus').disabled = e >= 36;
+
+            // Active button
+            document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('active'));
+            const ab = document.getElementById(`el-btn-${e}`);
+            if (ab) ab.classList.add('active');
+
+            const filled = getConfig(e);
+
+            // Config string
+            document.getElementById('config-display').textContent = configString(filled);
+
+            // Orbital slots
+            renderOrbSlots(filled);
+
+            // Energy ladder
+            renderLadder(filled);
+
+            // Canvas
+            drawAtom(e, filled);
+        }
+
+        function renderOrbSlots(filled) {
+            const container = document.getElementById('orb-slots');
+            container.innerHTML = '';
+            filled.forEach(sub => {
+                const row = document.createElement('div');
+                row.className = 'orb-level-row';
+                const lbl = document.createElement('div');
+                lbl.className = 'orb-level-label';
+                lbl.textContent = sub.label;
+                row.appendChild(lbl);
+                const boxRow = document.createElement('div');
+                boxRow.className = 'orb-box-row';
+
+                const slots = sub.max / 2; // number of orbitals
+                for (let i = 0; i < slots; i++) {
+                    const slot = document.createElement('div');
+                    const upFilled = sub.count > i;
+                    const downFilled = sub.count > slots + i;
+                    slot.className = 'orb-slot' + (downFilled ? ' filled-both' : (upFilled ? ' filled-up' : ''));
+                    if (upFilled) {
+                        const up = document.createElement('span');
+                        up.className = 'spin-up'; up.textContent = '↑';
+                        slot.appendChild(up);
+                    }
+                    if (downFilled) {
+                        const dn = document.createElement('span');
+                        dn.className = 'spin-down'; dn.textContent = '↓';
+                        slot.appendChild(dn);
+                    }
+                    boxRow.appendChild(slot);
+                }
+                row.appendChild(boxRow);
+                const typeLbl = document.createElement('span');
+                typeLbl.className = 'orb-type-label';
+                container.appendChild(row);
+            });
+        }
+
+        function renderLadder(filled) {
+            const container = document.getElementById('energy-ladder');
+            container.innerHTML = '';
+            AUFBAU.slice(0, 8).forEach(sub => {
+                const match = filled.find(f => f.label === sub.label);
+                const count = match ? match.count : 0;
+                const pct = Math.round(count / sub.max * 100);
+                const step = document.createElement('div');
+                step.className = 'energy-step ' + (count === sub.max ? 'done-fill' : count > 0 ? 'active-fill' : 'empty-fill');
+                step.innerHTML = `
+      <span class="es-label">${sub.label}</span>
+      <div class="es-bar"><div class="es-fill" style="width:${pct}%;background:${sub.color}"></div></div>
+      <span class="es-count">${count}/${sub.max}</span>
+    `;
+                container.appendChild(step);
+            });
+        }
+
+        // ── CANVAS ATOM DRAWING ──
+        const canvas = document.getElementById('atomCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const cx = W / 2, cy = H / 2;
+
+        function drawAtom(Z, filled) {
+            ctx.clearRect(0, 0, W, H);
+
+            // Background glow
+            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 150);
+            grd.addColorStop(0, 'rgba(6,182,212,0.06)');
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
+
+            // Shell radii
+            const shellR = [55, 95, 135, 175];
+
+            // Draw shells
+            const shellElectrons = [0, 0, 0, 0];
+            filled.forEach(sub => {
+                shellElectrons[sub.n - 1] = (shellElectrons[sub.n - 1] || 0) + sub.count;
+            });
+
+            for (let n = 0; n < 4; n++) {
+                if (shellElectrons[n] === 0 && n > 0) break;
+                const r = shellR[n];
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                const alpha = 0.15 - n * 0.03;
+                ctx.strokeStyle = `rgba(59,130,246,${alpha + 0.1})`;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Electrons on shell
+                const eCount = shellElectrons[n];
+                for (let i = 0; i < eCount; i++) {
+                    const angle = (i / eCount) * Math.PI * 2 - Math.PI / 2;
+                    const ex = cx + r * Math.cos(angle);
+                    const ey = cy + r * Math.sin(angle);
+                    ctx.beginPath();
+                    ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+                    const eGrd = ctx.createRadialGradient(ex, ey, 0, ex, ey, 5);
+                    eGrd.addColorStop(0, '#67e8f9');
+                    eGrd.addColorStop(1, 'rgba(6,182,212,0.3)');
+                    ctx.fillStyle = eGrd;
+                    ctx.fill();
+                    // Glow
+                    ctx.beginPath();
+                    ctx.arc(ex, ey, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(6,182,212,0.12)';
+                    ctx.fill();
+                }
+
+                // Shell label
+                if (eCount > 0) {
+                    ctx.font = '500 11px Inter, sans-serif';
+                    ctx.fillStyle = 'rgba(245,158,11,0.7)';
+                    ctx.fillText(`n=${n + 1}`, cx + r - 12, cy - r + 14);
+                }
+            }
+
+            // Nucleus
+            const nR = Math.min(16 + Math.log(Z + 1) * 4, 28);
+            const nucGrd = ctx.createRadialGradient(cx - nR * 0.3, cy - nR * 0.3, 0, cx, cy, nR);
+            nucGrd.addColorStop(0, '#fbbf24');
+            nucGrd.addColorStop(0.5, '#d97706');
+            nucGrd.addColorStop(1, '#92400e');
+            ctx.beginPath();
+            ctx.arc(cx, cy, nR, 0, Math.PI * 2);
+            ctx.fillStyle = nucGrd;
+            ctx.fill();
+            ctx.shadowColor = 'rgba(251,191,36,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Z label in nucleus
+            ctx.font = `bold ${nR > 18 ? 12 : 10}px Inter, sans-serif`;
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(Z > 9 ? Z : `Z=${Z}`, cx, cy);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+        }
+
+        // ── TAB SWITCHING ──
+        function switchTab(tab) {
+            ['builder', 'rules', 'aufbau'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+                document.getElementById(`content-${t}`).classList.toggle('active', t === tab);
+            });
+        }
+
+        // Init
+        updateAll();
+    </script>
+</body>
+
+</html>

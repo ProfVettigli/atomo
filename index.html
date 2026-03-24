@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atomo & Meccanica Quantistica | Pagina 1</title>
+    <meta name="description"
+        content="Scopri il modello atomico della meccanica quantistica: elettroni, protoni e neutroni spiegati in modo interattivo." />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* ── ATOM 3D ANIMATION ── */
+        .atom-hero {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+        }
+
+        .nucleus {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fbbf24, #d97706, #92400e);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3);
+            z-index: 10;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            transform-origin: 50% 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .orbit-ring:nth-child(2) {
+            width: 90px;
+            height: 90px;
+            transform: translate(-50%, -50%) rotateX(70deg);
+            animation: spin 3s linear infinite;
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        .orbit-ring:nth-child(3) {
+            width: 140px;
+            height: 140px;
+            transform: translate(-50%, -50%) rotateX(70deg) rotateZ(60deg);
+            animation: spin 4.5s linear infinite reverse;
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .orbit-ring:nth-child(4) {
+            width: 190px;
+            height: 190px;
+            transform: translate(-50%, -50%) rotateX(70deg) rotateZ(120deg);
+            animation: spin 6s linear infinite;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .electron {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .electron-1 {
+            top: 50%;
+            left: 50%;
+            margin: -5px 0 0 40px;
+        }
+
+        .electron-2 {
+            top: 50%;
+            left: 50%;
+            margin: -5px 0 0 65px;
+        }
+
+        .electron-3 {
+            top: 50%;
+            left: 50%;
+            margin: -5px 0 0 90px;
+        }
+
+        /* ── QN VISUAL ── */
+        .qn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .qn-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .qn-card:hover {
+            border-color: var(--border-bright);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .qn-symbol {
+            font-family: 'Courier New', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .qn-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .qn-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        /* ── PARTICLE CARDS ── */
+        .particle-card {
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .particle-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .p-electron {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(59, 130, 246, 0.08));
+            border: 1px solid rgba(6, 182, 212, 0.25);
+        }
+
+        .p-proton {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(245, 158, 11, 0.08));
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .p-neutron {
+            background: linear-gradient(135deg, rgba(100, 116, 139, 0.15), rgba(71, 85, 105, 0.1));
+            border: 1px solid rgba(100, 116, 139, 0.25);
+        }
+
+        .particle-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1.25rem;
+        }
+
+        .particle-icon-e {
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0.05));
+            border: 2px solid var(--accent-cyan);
+            box-shadow: 0 0 20px var(--glow-cyan);
+        }
+
+        .particle-icon-p {
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.05));
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .particle-icon-n {
+            background: radial-gradient(circle, rgba(100, 116, 139, 0.3), rgba(100, 116, 139, 0.05));
+            border: 2px solid #64748b;
+            box-shadow: 0 0 20px rgba(100, 116, 139, 0.3);
+        }
+
+        .particle-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .particle-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            padding: 0.35rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+
+        .particle-stat span:last-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ── ORBITALS DIAGRAM ── */
+        .orbital-diagram {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .orbital-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .orbital-level {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-gold);
+            width: 30px;
+            text-align: center;
+        }
+
+        .orbital-boxes {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .orbital-type {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-left: 0.25rem;
+        }
+
+        .orb-box {
+            width: 36px;
+            height: 36px;
+            border: 2px solid;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .orb-s {
+            border-color: rgba(6, 182, 212, 0.5);
+            background: rgba(6, 182, 212, 0.08);
+            color: var(--accent-cyan);
+        }
+
+        .orb-p {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--accent-purple);
+        }
+
+        .orb-d {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.08);
+            color: var(--accent-gold);
+        }
+
+        .orb-f {
+            border-color: rgba(236, 72, 153, 0.5);
+            background: rgba(236, 72, 153, 0.08);
+            color: var(--accent-pink);
+        }
+
+        .orb-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .orb-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ── WAVE FUNCTION ANIM ── */
+        .wave-container {
+            width: 100%;
+            height: 80px;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .wave-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── HEISENBERG VIZ ── */
+        .uncertainty-viz {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .uncertainty-box {
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .ub-pos {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        .ub-mom {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .ub-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .ub-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .ub-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .ub-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .ub-fill-pos {
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-cyan));
+        }
+
+        .ub-fill-mom {
+            background: linear-gradient(to right, var(--accent-purple), var(--accent-pink));
+        }
+
+        #uncertainty-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            margin: 1rem 0;
+        }
+
+        #uncertainty-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--glow-blue);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a class="nav-logo" href="index.html">⚛ AtomQuant</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Modello Atomico</a></li>
+                <li><a href="page2.html">Tavola Periodica</a></li>
+                <li><a href="page3.html">Config. Elettronica</a></li>
+                <li><a href="page4.html">Atomi, Ioni & Isotopi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+
+        <!-- ═══════════════ HERO ═══════════════ -->
+        <div class="hero fade-in">
+            <div class="hero-badge">⚛ Meccanica Quantistica</div>
+            <h1>Il <span class="gradient-text">Modello Atomico</span><br>della Meccanica Quantistica</h1>
+            <p class="hero-desc">
+                Un viaggio nel mondo subatomico: scopri come la fisica quantistica ha rivoluzionato la nostra
+                comprensione della struttura della materia.
+            </p>
+
+            <!-- Animated Atom -->
+            <div class="atom-hero">
+                <div class="nucleus"></div>
+                <div class="orbit-ring">
+                    <span class="electron electron-1"
+                        style="position:absolute;top:50%;left:50%;margin:-5px 0 0 40px;"></span>
+                </div>
+                <div class="orbit-ring">
+                    <span class="electron electron-2"
+                        style="position:absolute;top:50%;left:50%;margin:-50px 0 0 -5px;"></span>
+                </div>
+                <div class="orbit-ring">
+                    <span class="electron electron-3"
+                        style="position:absolute;top:50%;left:50%;margin:-5px 0 0 90px;"></span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- ═══════════════ STORIA & MODELLI ═══════════════ -->
+        <div class="section fade-in fade-in-d1">
+            <div class="section-title">📜 Da Democrito a Schrödinger: <span class="gradient-text">L'evoluzione del
+                    Modello</span></div>
+            <p class="section-subtitle">Il concetto di atomo si è trasformato radicalmente nel corso della storia della
+                scienza.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">🏛️</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-gold)">~460 a.C. – Democrito
+                    </div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">La materia è composta da particelle
+                        indivisibili chiamate <strong style="color:var(--text-primary)">àtomos</strong> (ἄτομος = "non
+                        tagliabile"). Primo modello puramente filosofico.</p>
+                </div>
+                <div class="card">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">⚗️</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-blue)">1803 – Dalton</div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">L'atomo come <strong
+                            style="color:var(--text-primary)">sfera massiccia e indivisibile</strong>. Primo modello
+                        scientifico basato su prove sperimentali chimiche.</p>
+                </div>
+                <div class="card">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">🍮</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-cyan)">1904 – Thomson</div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">Modello <strong
+                            style="color:var(--text-primary)">"plum pudding"</strong>: cariche negative (elettroni)
+                        immerse in una massa a carica positiva diffusa.</p>
+                </div>
+                <div class="card">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">🎯</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-green)">1911 – Rutherford</div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">Nucleo piccolo e denso circondato da
+                        elettroni orbitanti. Esperimento della <strong style="color:var(--text-primary)">lamina
+                            d'oro</strong>. Ma il modello era instabile!</p>
+                </div>
+                <div class="card">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">💫</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-purple)">1913 – Bohr</div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">Elettroni su <strong
+                            style="color:var(--text-primary)">orbite circolari quantizzate</strong>. L'energia è
+                        emessa/assorbita come fotoni nei salti tra livelli. Spiega lo spettro dell'idrogeno!</p>
+                </div>
+                <div class="card" style="border-color:rgba(139,92,246,0.35);background:rgba(139,92,246,0.06)">
+                    <div style="font-size:1.8rem;margin-bottom:0.75rem">🌊</div>
+                    <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-pink)">1926 – Schrödinger /
+                        Heisenberg</div>
+                    <p style="font-size:0.88rem;color:var(--text-secondary)">Il modello <strong
+                            style="color:var(--text-primary)">orbitale quantistico</strong>: l'elettrone è descritto da
+                        una funzione d'onda ψ. Non orbite ma <em>orbitali</em> – nubi di probabilità. Il modello
+                        attuale!</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- ═══════════════ MODELLO QUANTISTICO ═══════════════ -->
+        <div class="section fade-in fade-in-d2">
+            <div class="section-title">🌊 Il Modello Quantistico <span class="gradient-text">Attuale</span></div>
+            <p class="section-subtitle">La meccanica quantistica descrive gli elettroni non come particelle puntiformi
+                su orbite definite, ma come <em>onde di probabilità</em>.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+                <div>
+                    <h3 style="margin-bottom:1rem;font-size:1.05rem">L'Equazione di Schrödinger</h3>
+                    <div class="formula">Ĥψ = Eψ</div>
+                    <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:1rem">
+                        Dove <strong style="color:var(--accent-cyan)">Ĥ</strong> è l'operatore Hamiltoniano, <strong
+                            style="color:var(--accent-purple)">ψ</strong> è la funzione d'onda e <strong
+                            style="color:var(--accent-gold)">E</strong> è l'energia del sistema.
+                    </p>
+                    <div class="formula">P = |ψ|²</div>
+                    <p style="font-size:0.9rem;color:var(--text-secondary)">
+                        Il quadrato del modulo della funzione d'onda dà la <strong
+                            style="color:var(--text-primary)">densità di probabilità</strong> di trovare l'elettrone in
+                        una certa regione dello spazio.
+                    </p>
+                    <div class="info-box" style="margin-top:1.5rem">
+                        <p style="font-size:0.88rem">💡 <strong>Concetto chiave:</strong> Non possiamo conoscere la
+                            posizione esatta di un elettrone. Possiamo solo calcolare la <em>probabilità</em> di
+                            trovarlo in una certa regione, chiamata <strong>orbitale</strong>.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom:1rem;font-size:1.05rem">Funzione d'onda – Visualizzazione</h3>
+                    <div class="wave-container" id="wave-anim">
+                        <svg id="wave-svg" viewBox="0 0 600 80" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.1" />
+                                    <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:0.4" />
+                                    <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.1" />
+                                </linearGradient>
+                            </defs>
+                            <path id="wave-path" fill="url(#waveGrad)" stroke="#8b5cf6" stroke-width="2" />
+                            <path id="wave-path2" fill="none" stroke="rgba(6,182,212,0.5)" stroke-width="1.5"
+                                stroke-dasharray="4,4" />
+                        </svg>
+                    </div>
+                    <p style="font-size:0.8rem;color:var(--text-secondary);text-align:center;margin-bottom:1rem">
+                        Funzione d'onda ψ dell'orbitale 1s dell'idrogeno</p>
+
+                    <h3 style="margin-bottom:0.75rem;font-size:1.05rem">Principio di Indeterminazione di Heisenberg</h3>
+                    <div class="formula">Δx · Δp ≥ ℏ/2</div>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem">Muovi il cursore per
+                        vedere il trade-off tra precisione di posizione e quantità di moto:</p>
+                    <input type="range" id="uncertainty-slider" min="0" max="100" value="50">
+                    <div class="uncertainty-viz">
+                        <div class="uncertainty-box ub-pos">
+                            <div class="ub-label">Δx – Incertezza posizione</div>
+                            <div class="ub-value" id="ub-pos-val">50%</div>
+                            <div class="ub-bar">
+                                <div class="ub-fill ub-fill-pos" id="ub-pos-bar" style="width:50%"></div>
+                            </div>
+                        </div>
+                        <div class="uncertainty-box ub-mom">
+                            <div class="ub-label">Δp – Incertezza quantità di moto</div>
+                            <div class="ub-value" id="ub-mom-val">50%</div>
+                            <div class="ub-bar">
+                                <div class="ub-fill ub-fill-mom" id="ub-mom-bar" style="width:50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- ═══════════════ NUMERI QUANTICI ═══════════════ -->
+        <div class="section fade-in fade-in-d2">
+            <div class="section-title">🔢 I Numeri <span class="gradient-text">Quantici</span></div>
+            <p class="section-subtitle">Ogni elettrone in un atomo è descritto univocamente da 4 numeri quantici. Nessun
+                elettrone ha la stessa combinazione (Principio di Pauli).</p>
+
+            <div class="qn-grid">
+                <div class="qn-card">
+                    <div class="qn-symbol" style="color:var(--accent-blue)">n</div>
+                    <div class="qn-name">Numero Quantico Principale</div>
+                    <div class="qn-desc">Determina il <strong>livello di energia</strong> e la dimensione
+                        dell'orbitale.<br>Valori: n = 1, 2, 3, 4, …<br>Corrisponde ai "gusci" elettronici K, L, M, N, …
+                    </div>
+                </div>
+                <div class="qn-card">
+                    <div class="qn-symbol" style="color:var(--accent-purple)">ℓ</div>
+                    <div class="qn-name">Numero Quantico di Momento Angolare</div>
+                    <div class="qn-desc">Determina la <strong>forma</strong> dell'orbitale.<br>Valori: ℓ = 0, 1, 2, …
+                        (n-1)<br>ℓ=0 → s (sfera) · ℓ=1 → p (manubrio) · ℓ=2 → d · ℓ=3 → f</div>
+                </div>
+                <div class="qn-card">
+                    <div class="qn-symbol" style="color:var(--accent-cyan)">mℓ</div>
+                    <div class="qn-name">Numero Quantico Magnetico</div>
+                    <div class="qn-desc">Determina l'<strong>orientazione</strong> dell'orbitale nello
+                        spazio.<br>Valori: mℓ = -ℓ, …, 0, …, +ℓ<br>Es: per ℓ=1 → mℓ = -1, 0, +1 (3 orbitali p)</div>
+                </div>
+                <div class="qn-card">
+                    <div class="qn-symbol" style="color:var(--accent-gold)">ms</div>
+                    <div class="qn-name">Numero Quantico di Spin</div>
+                    <div class="qn-desc">Descrive il <strong>momento angolare intrinseco</strong>
+                        dell'elettrone.<br>Valori: ms = +½ (↑ spin su) o -½ (↓ spin giù)<br>Ogni orbitale ospita max 2
+                        elettroni con spin opposti.</div>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top:2rem">
+                <strong>🚫 Principio di Esclusione di Pauli:</strong> Non possono esistere due elettroni nello stesso
+                atomo con tutti e quattro i numeri quantici identici.
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- ═══════════════ ORBITALS ═══════════════ -->
+        <div class="section fade-in fade-in-d3">
+            <div class="section-title">🔵 Gli <span class="gradient-text">Orbitali Atomici</span></div>
+            <p class="section-subtitle">Le regioni di spazio dove esiste una probabilità ≥ 90% di trovare l'elettrone,
+                organizzate per livello di energia.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+                <div class="orbital-diagram">
+                    <div
+                        style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1.5rem;letter-spacing:0.05em">
+                        ORBITALI PER LIVELLO DI ENERGIA</div>
+                    <div class="orbital-row">
+                        <div class="orbital-level">1</div>
+                        <div class="orbital-boxes">
+                            <div class="orb-box orb-s" title="1s">1s</div>
+                            <span class="orbital-type">s → 2 e⁻</span>
+                        </div>
+                    </div>
+                    <div class="orbital-row">
+                        <div class="orbital-level">2</div>
+                        <div class="orbital-boxes">
+                            <div class="orb-box orb-s">2s</div>
+                            <div class="orb-box orb-p">2p</div>
+                            <div class="orb-box orb-p">2p</div>
+                            <div class="orb-box orb-p">2p</div>
+                            <span class="orbital-type">s+p → 8 e⁻</span>
+                        </div>
+                    </div>
+                    <div class="orbital-row">
+                        <div class="orbital-level">3</div>
+                        <div class="orbital-boxes">
+                            <div class="orb-box orb-s">3s</div>
+                            <div class="orb-box orb-p">3p</div>
+                            <div class="orb-box orb-p">3p</div>
+                            <div class="orb-box orb-p">3p</div>
+                            <div class="orb-box orb-d">3d</div>
+                            <div class="orb-box orb-d">3d</div>
+                            <span class="orbital-type">→ 18 e⁻</span>
+                        </div>
+                    </div>
+                    <div class="orbital-row">
+                        <div class="orbital-level">4</div>
+                        <div class="orbital-boxes">
+                            <div class="orb-box orb-s">4s</div>
+                            <div class="orb-box orb-p">4p</div>
+                            <div class="orb-box orb-p">…</div>
+                            <div class="orb-box orb-d">4d</div>
+                            <div class="orb-box orb-f">4f</div>
+                            <div class="orb-box orb-f">…</div>
+                            <span class="orbital-type">→ 32 e⁻</span>
+                        </div>
+                    </div>
+                    <div class="orb-legend">
+                        <div class="orb-legend-item"><span style="color:var(--accent-cyan)">■</span> Tipo s (sfera)
+                        </div>
+                        <div class="orb-legend-item"><span style="color:var(--accent-purple)">■</span> Tipo p (manubrio)
+                        </div>
+                        <div class="orb-legend-item"><span style="color:var(--accent-gold)">■</span> Tipo d</div>
+                        <div class="orb-legend-item"><span style="color:var(--accent-pink)">■</span> Tipo f</div>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom:1rem">Forme degli Orbitali</h3>
+                    <div style="display:grid;gap:0.75rem">
+                        <div class="card" style="display:flex;align-items:center;gap:1rem;padding:1rem">
+                            <div style="font-size:2rem">⚫</div>
+                            <div>
+                                <div style="font-weight:700;color:var(--accent-cyan)">Orbitale s (ℓ=0)</div>
+                                <div style="font-size:0.83rem;color:var(--text-secondary)">Forma
+                                    <strong>sferica</strong> con simmetria radiale. 1 orbitale per livello → 2 elettroni
+                                    max.</div>
+                            </div>
+                        </div>
+                        <div class="card" style="display:flex;align-items:center;gap:1rem;padding:1rem">
+                            <div style="font-size:2rem">💠</div>
+                            <div>
+                                <div style="font-weight:700;color:var(--accent-purple)">Orbitale p (ℓ=1)</div>
+                                <div style="font-size:0.83rem;color:var(--text-secondary)">Forma a <strong>doppio
+                                        lobo</strong> (manubrio). 3 orientazioni (px, py, pz) → 6 elettroni max.</div>
+                            </div>
+                        </div>
+                        <div class="card" style="display:flex;align-items:center;gap:1rem;padding:1rem">
+                            <div style="font-size:2rem">🌸</div>
+                            <div>
+                                <div style="font-weight:700;color:var(--accent-gold)">Orbitale d (ℓ=2)</div>
+                                <div style="font-size:0.83rem;color:var(--text-secondary)">5 orientazioni con lobi
+                                    multipli. → 10 elettroni max. Tipici dei metalli di transizione.</div>
+                            </div>
+                        </div>
+                        <div class="card" style="display:flex;align-items:center;gap:1rem;padding:1rem">
+                            <div style="font-size:2rem">✨</div>
+                            <div>
+                                <div style="font-weight:700;color:var(--accent-pink)">Orbitale f (ℓ=3)</div>
+                                <div style="font-size:0.83rem;color:var(--text-secondary)">7 orientazioni molto
+                                    complesse. → 14 elettroni max. Presenti in lantanidi e attinidi.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- ═══════════════ PARTICELLE SUBATOMICHE ═══════════════ -->
+        <div class="section fade-in fade-in-d4">
+            <div class="section-title">⚛ Le <span class="gradient-text">Particelle Subatomiche</span></div>
+            <p class="section-subtitle">Tre componenti fondamentali determinate la struttura di ogni atomo
+                dell'universo.</p>
+
+            <div class="card-grid">
+                <!-- ELETTRONE -->
+                <div class="particle-card p-electron">
+                    <div class="particle-icon particle-icon-e">⚡</div>
+                    <div class="particle-name" style="color:var(--accent-cyan)">Elettrone</div>
+                    <div style="margin-top:1rem">
+                        <div class="particle-stat"><span>Carica</span><span>−1 (−1.6×10⁻¹⁹ C)</span></div>
+                        <div class="particle-stat"><span>Massa</span><span>9.11×10⁻³¹ kg</span></div>
+                        <div class="particle-stat"><span>Posizione</span><span>Nuvola (orbitali)</span></div>
+                        <div class="particle-stat"><span>Tipo</span><span>Leptone (elementare)</span></div>
+                        <div class="particle-stat"><span>Spin</span><span>½ (fermione)</span></div>
+                    </div>
+                    <div class="info-box" style="margin-top:1rem;text-align:left;padding:0.875rem">
+                        <p style="font-size:0.8rem">Gli elettroni determinano le <strong>proprietà chimiche</strong>
+                            dell'atomo e partecipano ai legami chimici. La loro distribuzione negli orbitali segue le
+                            regole di Aufbau, Hund e Pauli.</p>
+                    </div>
+                </div>
+
+                <!-- PROTONE -->
+                <div class="particle-card p-proton">
+                    <div class="particle-icon particle-icon-p">🔴</div>
+                    <div class="particle-name" style="color:#ef4444">Protone</div>
+                    <div style="margin-top:1rem">
+                        <div class="particle-stat"><span>Carica</span><span>+1 (+1.6×10⁻¹⁹ C)</span></div>
+                        <div class="particle-stat"><span>Massa</span><span>1.673×10⁻²⁷ kg</span></div>
+                        <div class="particle-stat"><span>Posizione</span><span>Nucleo</span></div>
+                        <div class="particle-stat"><span>Tipo</span><span>Adroni (quark uud)</span></div>
+                        <div class="particle-stat"><span>Numero ✦</span><span>= Numero atomico Z</span></div>
+                    </div>
+                    <div class="info-box"
+                        style="margin-top:1rem;text-align:left;padding:0.875rem;background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.25)">
+                        <p style="font-size:0.8rem">Il numero di protoni (numero atomico <strong>Z</strong>) definisce
+                            l'<strong>identità dell'elemento</strong>: ogni elemento ha un Z unico e invariabile. Il
+                            protone è ~1836 volte più pesante dell'elettrone.</p>
+                    </div>
+                </div>
+
+                <!-- NEUTRONE -->
+                <div class="particle-card p-neutron">
+                    <div class="particle-icon particle-icon-n">⚪</div>
+                    <div class="particle-name" style="color:#94a3b8">Neutrone</div>
+                    <div style="margin-top:1rem">
+                        <div class="particle-stat"><span>Carica</span><span>0 (neutro)</span></div>
+                        <div class="particle-stat"><span>Massa</span><span>1.675×10⁻²⁷ kg</span></div>
+                        <div class="particle-stat"><span>Posizione</span><span>Nucleo</span></div>
+                        <div class="particle-stat"><span>Tipo</span><span>Adrone (quark udd)</span></div>
+                        <div class="particle-stat"><span>Ruolo</span><span>Stabilità nucleare</span></div>
+                    </div>
+                    <div class="info-box"
+                        style="margin-top:1rem;text-align:left;padding:0.875rem;background:rgba(100,116,139,0.08);border-color:rgba(100,116,139,0.3)">
+                        <p style="font-size:0.8rem">I neutroni tengono insieme i protoni nel nucleo tramite la
+                            <strong>forza nucleare forte</strong>. Atomi con stesso Z ma diverso numero di neutroni si
+                            chiamano <strong>isotopi</strong> (stessa chimica, massa diversa).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFRONTO DIMENSIONI -->
+            <div class="warning-box" style="margin-top:2rem">
+                <h3 style="margin-bottom:0.75rem;font-size:1rem">📐 Ordini di Grandezza</h3>
+                <div
+                    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;font-size:0.88rem">
+                    <div><span style="color:var(--accent-gold)">Atomo:</span> ~10⁻¹⁰ m (0.1 nm = 1 Å)</div>
+                    <div><span style="color:var(--accent-gold)">Nucleo:</span> ~10⁻¹⁵ m (1 fm = 1 fermi)</div>
+                    <div><span style="color:var(--accent-gold)">Rapporto:</span> Come un pisello in un campo di calcio!
+                    </div>
+                    <div><span style="color:var(--accent-gold)">Materia "solida":</span> In realtà 99.9999% vuoto</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PAGE NAVIGATION ── -->
+        <div class="page-nav">
+            <span></span>
+            <a href="page2.html" class="btn btn-primary">Tavola Periodica Interattiva →</a>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>⚛ AtomQuant – Fisica Quantistica Interattiva &nbsp;|&nbsp; Pagina 1 di 4</p>
+    </footer>
+
+    <script>
+        // ── WAVE ANIMATION ──
+        const wavePath = document.getElementById('wave-path');
+        const wavePath2 = document.getElementById('wave-path2');
+        let t = 0;
+
+        function drawWave() {
+            const W = 600, H = 80;
+            let d = `M 0 ${H / 2}`;
+            let d2 = `M 0 ${H / 2}`;
+            for (let x = 0; x <= W; x += 3) {
+                const r = x / W * 2 * Math.PI * 3;
+                const env = Math.exp(-Math.pow((x - W / 2) / (W * 0.28), 2));
+                const y1 = H / 2 - Math.cos(r - t) * 28 * env;
+                const y2 = H / 2 - Math.sin(r - t * 0.7) * 18 * env;
+                d += ` L ${x} ${y1}`;
+                d2 += ` L ${x} ${y2}`;
+            }
+            d += ` L ${W} ${H / 2} L 0 ${H / 2} Z`;
+            wavePath.setAttribute('d', d);
+            wavePath2.setAttribute('d', d2);
+            t += 0.04;
+            requestAnimationFrame(drawWave);
+        }
+        drawWave();
+
+        // ── UNCERTAINTY SLIDER ──
+        const slider = document.getElementById('uncertainty-slider');
+        const posVal = document.getElementById('ub-pos-val');
+        const momVal = document.getElementById('ub-mom-val');
+        const posBar = document.getElementById('ub-pos-bar');
+        const momBar = document.getElementById('ub-mom-bar');
+
+        slider.addEventListener('input', () => {
+            const v = parseInt(slider.value);
+            const pos = v;
+            const mom = 100 - v;
+            posVal.textContent = pos + '%';
+            momVal.textContent = mom + '%';
+            posBar.style.width = pos + '%';
+            momBar.style.width = mom + '%';
+        });
+    </script>
+
+</body>
+
+</html>

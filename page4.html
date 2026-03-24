@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atomi, Ioni, Isotopi & Quiz | AtomQuant</title>
+    <meta name="description"
+        content="Scopri le differenze tra atomi, ioni e isotopi. Esplora la valle di stabilità degli isotopi e metti alla prova le tue conoscenze!" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* ── COMPARISON TABS ── */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+
+        .compare-card {
+            border-radius: 16px;
+            padding: 1.75rem;
+            text-align: center;
+            border: 1px solid;
+            transition: all 0.3s;
+        }
+
+        .compare-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .cc-atom {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .cc-ion {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .cc-isotope {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .cc-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .cc-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            margin: 0.75rem 0;
+        }
+
+        .cc-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            padding: 0.35rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .cc-row span:first-child {
+            color: var(--text-secondary);
+        }
+
+        /* ── ION BUILDER ── */
+        .ion-builder {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .ion-nucleus {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .nucleus-symbol {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .charge-badge {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            transition: all 0.4s;
+        }
+
+        .charge-neutral {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .charge-pos {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .charge-neg {
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+            border: 1px solid rgba(6, 182, 212, 0.4);
+        }
+
+        .ion-controls label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .ion-controls select,
+        .ion-controls input[type=range] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0.6rem 0.8rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .ion-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .ion-info-row span:last-child {
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        /* ── VALLEY OF STABILITY ── */
+        #vos-canvas {
+            display: block;
+            width: 100%;
+            border-radius: 12px;
+            cursor: crosshair;
+        }
+
+        .vos-legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .vos-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .vos-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        #vos-tooltip {
+            position: absolute;
+            background: rgba(10, 22, 40, 0.95);
+            border: 1px solid var(--border-bright);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.82rem;
+            pointer-events: none;
+            display: none;
+            z-index: 50;
+            min-width: 160px;
+        }
+
+        /* ── QUIZ ── */
+        .quiz-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .quiz-progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        .question-num {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .quiz-opt {
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+
+        .quiz-opt:hover:not(:disabled) {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .quiz-opt.correct {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+            color: #6ee7b7;
+        }
+
+        .quiz-opt.wrong {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            display: none;
+        }
+
+        .feedback-correct {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+
+        .feedback-wrong {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .quiz-score {
+            text-align: center;
+            padding: 2.5rem;
+        }
+
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            margin: 0 auto 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--accent-green) calc(var(--pct)*1%), rgba(255, 255, 255, 0.06) 0);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .score-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a class="nav-logo" href="index.html">⚛ AtomQuant</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Modello Atomico</a></li>
+                <li><a href="page2.html">Tavola Periodica</a></li>
+                <li><a href="page3.html">Config. Elettronica</a></li>
+                <li><a href="page4.html" class="active">Atomi, Ioni & Isotopi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero" style="padding-top:3.5rem;padding-bottom:2rem">
+            <div class="hero-badge">⚗ Struttura della Materia</div>
+            <h1><span class="gradient-text">Atomi, Ioni & Isotopi</span></h1>
+            <p class="hero-desc">Tre variazioni dello stesso elemento: stessa identità chimica, proprietà diverse.
+                Esplora la valle di stabilità nucleare e metti alla prova le tue conoscenze!</p>
+        </div>
+
+        <div class="section" style="padding-top:0">
+
+            <!-- ═══ COMPARISON ═══ -->
+            <div class="section-title">⚖️ Le <span class="gradient-text">Differenze Fondamentali</span></div>
+            <p class="section-subtitle">Un elemento può esistere in forme diverse a seconda del numero di elettroni e
+                neutroni.</p>
+
+            <div class="compare-grid" style="margin-bottom:2rem">
+                <div class="compare-card cc-atom">
+                    <div class="cc-icon">⚛</div>
+                    <div class="cc-title" style="color:var(--accent-blue)">Atomo</div>
+                    <div class="cc-formula" style="color:var(--accent-cyan)">Z = N_e⁻</div>
+                    <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:1rem">Particella
+                        elettricamente <strong style="color:var(--text-primary)">neutra</strong>. Il numero di protoni è
+                        uguale al numero di elettroni.</p>
+                    <div class="cc-row"><span>Carica totale</span><span>0 (neutro)</span></div>
+                    <div class="cc-row"><span>Protoni</span><span>Z</span></div>
+                    <div class="cc-row"><span>Elettroni</span><span>Z</span></div>
+                    <div class="cc-row"><span>Es. carbonio</span><span>6p / 6e⁻</span></div>
+                </div>
+                <div class="compare-card cc-ion">
+                    <div class="cc-icon">⚡</div>
+                    <div class="cc-title" style="color:var(--accent-gold)">Ione</div>
+                    <div class="cc-formula" style="color:var(--accent-gold)">Z ≠ N_e⁻</div>
+                    <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:1rem">Atomo che ha <strong
+                            style="color:var(--text-primary)">perso o acquistato</strong> elettroni: ha carica elettrica
+                        netta. Catione (+) o anione (−).</p>
+                    <div class="cc-row"><span>Catione (+)</span><span>ha perso e⁻</span></div>
+                    <div class="cc-row"><span>Anione (−)</span><span>ha guadagnato e⁻</span></div>
+                    <div class="cc-row"><span>Protoni</span><span>invariato (Z)</span></div>
+                    <div class="cc-row"><span>Esempio</span><span>Na⁺, Cl⁻, Fe³⁺</span></div>
+                </div>
+                <div class="compare-card cc-isotope">
+                    <div class="cc-icon">⚖️</div>
+                    <div class="cc-title" style="color:var(--accent-green)">Isotopo</div>
+                    <div class="cc-formula" style="color:var(--accent-green)">Z uguale, N diverso</div>
+                    <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:1rem">Stessa identità chimica
+                        (stesso Z), ma diverso numero di <strong style="color:var(--text-primary)">neutroni</strong>.
+                        Stesse proprietà chimiche, massa diversa.</p>
+                    <div class="cc-row"><span>Protoni (Z)</span><span>uguale</span></div>
+                    <div class="cc-row"><span>Neutroni (N)</span><span>diverso</span></div>
+                    <div class="cc-row"><span>Proprietà chimiche</span><span>identiche</span></div>
+                    <div class="cc-row"><span>Esempio</span><span>¹H, ²H, ³H</span></div>
+                </div>
+            </div>
+
+            <!-- NOTATION BOX -->
+            <div class="info-box" style="margin-bottom:3rem">
+                <h3 style="margin-bottom:1rem">📝 Come si scrive la notazione atomica</h3>
+                <div style="display:flex;gap:3rem;align-items:center;flex-wrap:wrap">
+                    <div
+                        style="font-family:'Courier New',monospace;font-size:2.5rem;font-weight:700;position:relative;width:80px;text-align:center">
+                        <span
+                            style="color:var(--accent-gold);font-size:1rem;position:absolute;top:-8px;left:-18px">A</span>
+                        <span
+                            style="color:var(--accent-blue);font-size:1rem;position:absolute;bottom:-8px;left:-18px">Z</span>
+                        <span style="color:var(--text-primary)">X</span>
+                        <span
+                            style="color:var(--accent-pink);font-size:1rem;position:absolute;top:-8px;right:-18px">n±</span>
+                    </div>
+                    <div style="font-size:0.9rem;flex:1;min-width:200px">
+                        <div style="display:flex;gap:1rem;margin-bottom:0.5rem"><span
+                                style="color:var(--accent-gold);font-family:'Courier New',monospace;font-weight:700">A</span><span
+                                style="color:var(--text-secondary)">Numero di massa = protoni + neutroni</span></div>
+                        <div style="display:flex;gap:1rem;margin-bottom:0.5rem"><span
+                                style="color:var(--accent-blue);font-family:'Courier New',monospace;font-weight:700">Z</span><span
+                                style="color:var(--text-secondary)">Numero atomico = numero di protoni</span></div>
+                        <div style="display:flex;gap:1rem;margin-bottom:0.5rem"><span
+                                style="color:var(--text-primary);font-family:'Courier New',monospace;font-weight:700">X</span><span
+                                style="color:var(--text-secondary)">Simbolo chimico dell'elemento</span></div>
+                        <div style="display:flex;gap:1rem"><span
+                                style="color:var(--accent-pink);font-family:'Courier New',monospace;font-weight:700">n±</span><span
+                                style="color:var(--text-secondary)">Carica ionica (es. ²⁺, ¹⁻)</span></div>
+                    </div>
+                    <div style="font-family:'Courier New',monospace;font-size:1rem;color:var(--accent-cyan)">
+                        <div>¹²C → carbonio-12, neutro</div>
+                        <div>¹⁴C → carbonio-14, isotopo</div>
+                        <div>Na⁺ → sodio, catione</div>
+                        <div>Cl⁻ → cloro, anione</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ ION BUILDER ═══ -->
+            <div class="section-title">⚡ Costruttore di <span class="gradient-text">Ioni</span></div>
+            <p class="section-subtitle">Seleziona un elemento e modifica il numero di elettroni per creare cationi e
+                anioni.</p>
+            <div class="card ion-builder" style="margin-bottom:3rem">
+                <div class="ion-nucleus">
+                    <div class="nucleus-symbol" id="ion-sym">Na</div>
+                    <div class="charge-badge charge-neutral" id="ion-charge">neutro</div>
+                    <div style="margin-top:1.5rem;font-size:0.85rem">
+                        <div class="ion-info-row"><span>Protoni (Z)</span><span id="ion-protons">11</span></div>
+                        <div class="ion-info-row"><span>Neutroni (N)</span><span id="ion-neutrons">12</span></div>
+                        <div class="ion-info-row"><span>Elettroni</span><span id="ion-electrons">11</span></div>
+                        <div class="ion-info-row"><span>Numero di massa (A)</span><span id="ion-mass">23</span></div>
+                        <div class="ion-info-row"><span>Notazione</span><span id="ion-notation">²³Na</span></div>
+                    </div>
+                </div>
+                <div class="ion-controls">
+                    <label for="ion-select">Elemento</label>
+                    <select id="ion-select" onchange="updateIon()">
+                        <option value="1,1,0,H">Idrogeno (Z=1)</option>
+                        <option value="3,4,0,Li">Litio (Z=3)</option>
+                        <option value="6,6,0,C">Carbonio (Z=6)</option>
+                        <option value="7,7,0,N">Azoto (Z=7)</option>
+                        <option value="8,8,0,O">Ossigeno (Z=8)</option>
+                        <option value="9,10,0,F">Fluoro (Z=9)</option>
+                        <option value="11,12,0,Na" selected>Sodio (Z=11)</option>
+                        <option value="12,12,0,Mg">Magnesio (Z=12)</option>
+                        <option value="13,14,0,Al">Alluminio (Z=13)</option>
+                        <option value="17,18,0,Cl">Cloro (Z=17)</option>
+                        <option value="19,20,0,K">Potassio (Z=19)</option>
+                        <option value="20,20,0,Ca">Calcio (Z=20)</option>
+                        <option value="26,30,0,Fe">Ferro (Z=26)</option>
+                    </select>
+                    <label for="ion-e-slider">Elettroni: <span id="ion-e-label">11</span></label>
+                    <input type="range" id="ion-e-slider" min="0" max="20" value="11" oninput="updateIon()">
+                    <div class="info-box" id="ion-description" style="font-size:0.85rem">
+                        Il sodio neutro ha 11 protoni e 11 elettroni. Sposta il cursore per ionizzarlo!
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ VALLEY OF STABILITY ═══ -->
+            <div class="section-title">🏔️ La Valle di <span class="gradient-text">Stabilità degli Isotopi</span></div>
+            <p class="section-subtitle">Il grafico mostra tutti gli isotopi noti (nuclidi) in funzione del numero di
+                neutroni (N) e protoni (Z). Il colore indica la modalità di decadimento.</p>
+            <div class="card" style="position:relative">
+                <canvas id="vos-canvas" width="900" height="500"></canvas>
+                <div id="vos-tooltip"></div>
+                <div class="vos-legend">
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:#22c55e"></div>Stabile
+                    </div>
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:#3b82f6"></div>Decadimento β⁻ (N eccesso)
+                    </div>
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:#ef4444"></div>Decadimento β⁺ / cattura e⁻ (Z eccesso)
+                    </div>
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:#f59e0b"></div>Decadimento α (nuclei pesanti)
+                    </div>
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:#8b5cf6"></div>Fissione spontanea
+                    </div>
+                    <div class="vos-legend-item">
+                        <div class="vos-dot" style="background:rgba(255,255,255,0.25)"></div>Linea N=Z
+                    </div>
+                </div>
+            </div>
+            <div class="info-box" style="margin-top:1rem">
+                <h3 style="margin-bottom:0.75rem;font-size:0.95rem">💡 Come leggere la valle di stabilità</h3>
+                <div style="font-size:0.85rem;color:var(--text-secondary);display:grid;gap:0.6rem">
+                    <div>🟩 Gli isotopi <strong style="color:var(--text-primary)">stabili</strong> formano la "valle"
+                        centrale. Per elementi leggeri coincide con N≈Z; per elementi pesanti N&gt;Z perché servono più
+                        neutroni per contrastare la repulsione coulombiana.</div>
+                    <div>🔵 Nuclei con troppi neutroni decadono β⁻ (un neutrone → protone + elettrone + antineutrino).
+                    </div>
+                    <div>🔴 Nuclei con troppi protoni decadono β⁺ (un protone → neutrone + positrone + neutrino).</div>
+                    <div>🟡 Nuclei pesanti (Z&gt;83) decadono α emettendo un nucleo di elio-4, riducendo sia Z che N di
+                        2.</div>
+                </div>
+            </div>
+        </div><!-- end section -->
+
+        <!-- ═══ QUIZ ═══ -->
+        <hr class="divider">
+        <div class="section-sm" style="padding-top:3rem">
+            <div style="text-align:center;margin-bottom:2rem">
+                <div class="hero-badge">🧠 Valuta le tue Competenze</div>
+                <div class="section-title" style="text-align:center">Quiz di <span class="gradient-text">Verifica</span>
+                </div>
+                <p class="section-subtitle" style="text-align:center">10 domande su tutto il modulo: modello atomico,
+                    tavola periodica, configurazione elettronica e struttura nucleare.</p>
+            </div>
+            <div class="quiz-card" id="quiz-card">
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quiz-progress" style="width:0%"></div>
+                </div>
+                <div id="quiz-body"></div>
+            </div>
+        </div>
+
+        <div class="page-nav">
+            <a href="page3.html" class="btn btn-outline">← Config. Elettronica</a>
+            <a href="index.html" class="btn btn-outline">🔄 Ricomincia dal Modulo</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>⚛ AtomQuant – Fisica Quantistica Interattiva &nbsp;|&nbsp; Pagina 4 di 4</p>
+    </footer>
+
+    <script>
+        // ─── ION BUILDER ───
+        function updateIon() {
+            const sel = document.getElementById('ion-select');
+            const [Z, N, , sym] = sel.value.split(',');
+            const z = parseInt(Z), n = parseInt(N);
+            const slider = document.getElementById('ion-e-slider');
+            slider.max = z + 4; slider.min = Math.max(0, z - 4);
+            const e = parseInt(slider.value);
+            if (e > parseInt(slider.max)) slider.value = slider.max;
+            if (e < parseInt(slider.min)) slider.value = slider.min;
+            const electrons = parseInt(slider.value);
+            const charge = z - electrons;
+            document.getElementById('ion-e-label').textContent = electrons;
+            document.getElementById('ion-sym').textContent = sym;
+            document.getElementById('ion-protons').textContent = z;
+            document.getElementById('ion-neutrons').textContent = n;
+            document.getElementById('ion-electrons').textContent = electrons;
+            document.getElementById('ion-mass').textContent = z + n;
+            const chargeStr = charge === 0 ? '' : (charge > 0 ? `${charge > 1 ? charge : ''}⁺` : `${Math.abs(charge) > 1 ? Math.abs(charge) : ''}⁻`);
+            document.getElementById('ion-notation').textContent = `${z + n}${sym}${chargeStr}`;
+            const chargeBadge = document.getElementById('ion-charge');
+            const desc = document.getElementById('ion-description');
+            if (charge === 0) {
+                chargeBadge.textContent = 'neutro'; chargeBadge.className = 'charge-badge charge-neutral';
+                desc.innerHTML = `<strong>${sym}</strong> è un atomo neutro: ${z} protoni = ${electrons} elettroni. Carica totale = 0.`;
+            } else if (charge > 0) {
+                chargeBadge.textContent = charge === 1 ? '⁺' : `${charge}⁺`; chargeBadge.className = 'charge-badge charge-pos';
+                desc.innerHTML = `<strong>${sym}${chargeStr}</strong> è un <strong>catione</strong>: ha perso ${charge} elettron${charge === 1 ? 'e' : 'i'}. Carica = +${charge}. Configurazione più simile al gas nobile precedente.`;
+            } else {
+                chargeBadge.textContent = Math.abs(charge) === 1 ? '⁻' : `${Math.abs(charge)}⁻`; chargeBadge.className = 'charge-badge charge-neg';
+                desc.innerHTML = `<strong>${sym}${chargeStr}</strong> è un <strong>anione</strong>: ha acquistato ${Math.abs(charge)} elettron${Math.abs(charge) === 1 ? 'e' : 'i'}. Carica = ${charge}. Configurazione più simile al gas nobile successivo.`;
+            }
+        }
+        document.getElementById('ion-e-slider').addEventListener('input', updateIon);
+        updateIon();
+
+        // ─── VALLEY OF STABILITY CANVAS ───
+        const vosCanvas = document.getElementById('vos-canvas');
+        const vosCtx = vosCanvas.getContext('2d');
+        const tooltip = document.getElementById('vos-tooltip');
+
+        function generateNuclides() {
+            const DATA = [];
+            for (let Z = 1; Z <= 92; Z++) {
+                const Nmin = Math.max(0, Math.round(Z * 0.9));
+                const Nmax = Math.round(Z * 1.7 + 10);
+                for (let N = Nmin; N <= Nmax; N++) {
+                    const A = Z + N;
+                    const ratio = N / Math.max(Z, 1);
+                    const idealN = Z <= 20 ? Z : Z + Math.round((Z - 20) * 0.45);
+                    const delta = N - idealN;
+                    let type, stable = false;
+                    if (Math.abs(delta) <= 1 && Z <= 82) { type = 'stable'; stable = true; }
+                    else if (delta > 1) type = 'beta-';
+                    else if (delta < -1 && Z <= 60) type = 'beta+';
+                    else if (Z > 60) type = 'alpha';
+                    else type = 'beta+';
+                    if (A > 230 && Math.random() < 0.3) type = 'fission';
+                    DATA.push({ Z, N, A, type, stable });
+                }
+            }
+            return DATA;
+        }
+
+        const nuclides = generateNuclides();
+        const PAD = { left: 50, bottom: 40, top: 20, right: 20 };
+        const VW = vosCanvas.width - PAD.left - PAD.right;
+        const VH = vosCanvas.height - PAD.top - PAD.bottom;
+
+        function drawVOS() {
+            vosCtx.clearRect(0, 0, vosCanvas.width, vosCanvas.height);
+            vosCtx.fillStyle = 'rgba(5,10,20,0.8)';
+            vosCtx.fillRect(0, 0, vosCanvas.width, vosCanvas.height);
+
+            const maxN = 145, maxZ = 92;
+            const scX = n => PAD.left + (n / maxN) * VW;
+            const scY = z => PAD.top + VH - (z / maxZ) * VH;
+
+            // Grid
+            vosCtx.strokeStyle = 'rgba(255,255,255,0.05)'; vosCtx.lineWidth = 0.5;
+            for (let n = 0; n <= maxN; n += 20) {
+                vosCtx.beginPath(); vosCtx.moveTo(scX(n), PAD.top); vosCtx.lineTo(scX(n), PAD.top + VH); vosCtx.stroke();
+                vosCtx.fillStyle = 'rgba(255,255,255,0.3)'; vosCtx.font = '10px Inter';
+                vosCtx.fillText(n, scX(n) - 5, PAD.top + VH + 14);
+            }
+            for (let z = 0; z <= maxZ; z += 10) {
+                vosCtx.beginPath(); vosCtx.moveTo(PAD.left, scY(z)); vosCtx.lineTo(PAD.left + VW, scY(z)); vosCtx.stroke();
+                vosCtx.fillStyle = 'rgba(255,255,255,0.3)'; vosCtx.font = '10px Inter';
+                vosCtx.fillText(z, PAD.left - 26, scY(z) + 4);
+            }
+
+            // N=Z line
+            vosCtx.beginPath(); vosCtx.strokeStyle = 'rgba(255,255,255,0.2)'; vosCtx.lineWidth = 1; vosCtx.setLineDash([5, 4]);
+            vosCtx.moveTo(scX(0), scY(0)); vosCtx.lineTo(scX(Math.min(maxN, maxZ)), scY(Math.min(maxN, maxZ))); vosCtx.stroke();
+            vosCtx.setLineDash([]);
+
+            const colorMap = { stable: '#22c55e', 'beta-': '#3b82f6', 'beta+': '#ef4444', alpha: '#f59e0b', fission: '#8b5cf6' };
+
+            // Plot nuclides
+            const sz = 3.5;
+            nuclides.forEach(({ Z, N, type }) => {
+                if (N > maxN || Z > maxZ) return;
+                vosCtx.fillStyle = colorMap[type] || '#888';
+                vosCtx.globalAlpha = type === 'stable' ? 0.95 : 0.6;
+                vosCtx.fillRect(scX(N) - sz / 2, scY(Z) - sz / 2, sz, sz);
+            });
+            vosCtx.globalAlpha = 1;
+
+            // Axis labels
+            vosCtx.fillStyle = 'rgba(255,255,255,0.6)'; vosCtx.font = 'bold 12px Inter';
+            vosCtx.fillText('N (Neutroni)', PAD.left + VW / 2 - 40, vosCanvas.height - 4);
+            vosCtx.save(); vosCtx.translate(14, PAD.top + VH / 2 + 30); vosCtx.rotate(-Math.PI / 2);
+            vosCtx.fillText('Z (Protoni)', 0, 0); vosCtx.restore();
+        }
+
+        drawVOS();
+
+        vosCanvas.addEventListener('mousemove', e => {
+            const rect = vosCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            const maxN = 145, maxZ = 92;
+            const scXi = x => Math.round((x - PAD.left) / VW * maxN);
+            const scYi = y => Math.round(maxZ - (y - PAD.top) / VH * maxZ);
+            const N = scXi(mx), Z = scYi(my);
+            const found = nuclides.find(nu => nu.N === N && nu.Z === Z);
+            if (found && N >= 0 && Z >= 0) {
+                const label = { stable: 'Stabile ✅', 'beta-': 'Decadimento β⁻ 🔵', 'beta+': 'Decadimento β⁺ 🔴', alpha: 'Decadimento α 🟡', fission: 'Fissione sp. 🟣' };
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+                tooltip.style.top = (e.clientY - rect.top - 14) + 'px';
+                tooltip.innerHTML = `<strong>Z=${found.Z}, N=${found.N}</strong><br>A = ${found.A}<br>${label[found.type] || found.type}`;
+            } else tooltip.style.display = 'none';
+        });
+        vosCanvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+        // ─── QUIZ ───
+        const QUESTIONS = [
+            { q: 'Che cosa descrive la funzione d\'onda ψ nell\'equazione di Schrödinger?', opts: ['La traiettoria esatta dell\'elettrone', 'La densità di probabilità di trovare l\'elettrone', 'L\'energia cinetica dell\'elettrone', 'La forza attrattiva nucleo-elettrone'], ans: 1, exp: '|ψ|² fornisce la probabilità di trovare l\'elettrone in una certa regione: forma la "nuvola elettronica" o orbitale.' },
+            { q: 'Quanti elettroni può contenere al massimo il secondo guscio (n=2)?', opts: ['2', '6', '8', '18'], ans: 2, exp: 'Il guscio n=2 comprende il sottolivello 2s (2e⁻) e 2p (6e⁻), per un totale di 8 elettroni. Formula: 2n² = 2×4 = 8.' },
+            { q: 'Cosa sono gli isotopi di un elemento?', opts: ['Atomi con diverso numero di protoni', 'Atomi con lo stesso numero di neutroni ma diverso Z', 'Atomi con stesso Z ma diverso numero di neutroni', 'Ioni con la stessa carica ma massa diversa'], ans: 2, exp: 'Gli isotopi hanno lo stesso numero atomico Z (stessa identità chimica) ma diverso numero di neutroni N, quindi diversa massa A.' },
+            { q: 'Quale principio afferma che non possono esistere 2 elettroni con gli stessi 4 numeri quantici?', opts: ['Principio di Aufbau', 'Regola di Hund', 'Principio di esclusione di Pauli', 'Principio di indeterminazione di Heisenberg'], ans: 2, exp: 'Il principio di esclusione di Pauli vieta a due elettroni dello stesso atomo di avere identici n, ℓ, mℓ e ms.' },
+            { q: 'Un catione si forma quando un atomo…', opts: ['Acquista protoni', 'Acquista elettroni', 'Perde elettroni', 'Perde neutroni'], ans: 2, exp: 'Un catione (carica positiva) si forma quando l\'atomo perde uno o più elettroni, risultando in Z > numero di elettroni.' },
+            { q: 'Quale sottolivello si riempie PRIMA secondo l\'ordine di Aufbau: 4s o 3d?', opts: ['3d (energia minore)', '4s (n+ℓ = 4 < 5)', 'Dipende dall\'elemento', 'Si riempiono insieme'], ans: 1, exp: 'Con la regola (n+ℓ): per 4s → 4+0=4; per 3d → 3+2=5. Vince 4s! Ecco perché il potassio (Z=19) ha config. [Ar] 4s¹.' },
+            { q: 'Il numero di massa A di un nucleo è uguale a:', opts: ['Solo il numero di protoni Z', 'Il numero di protoni + il numero di neutroni', 'Il numero di neutroni - il numero di protoni', 'La massa in grammi dell\'atomo'], ans: 1, exp: 'A = Z + N, dove Z = numero di protoni e N = numero di neutroni. Es: il ferro-56 ha Z=26 e N=30, A=56.' },
+            { q: 'Nella regola di Hund, come si riempiono gli orbitali dello stesso sottolivello?', opts: ['Prima si riempiono completamente uno alla volta', 'Prima un elettrone in ogni orbitale (spin paralleli), poi il secondo', 'Non importa l\'ordine', 'Prima spin down, poi spin up'], ans: 1, exp: 'La regola di Hund massimizza la molteplicità di spin: prima 1 elettrone ↑ in ogni orbitale disponibile, poi ↓.' },
+            { q: 'Nella valle di stabilità, gli isotopi con eccesso di neutroni tendono a decadere per:', opts: ['Emissione α', 'Decadimento β⁺', 'Decadimento β⁻', 'Fissione spontanea'], ans: 2, exp: 'Il decadimento β⁻ converte un neutrone in un protone (+ elettrone + antineutrino), riducendo il rapporto N/Z verso la stabilità.' },
+            { q: 'Il numero quantico di spin ms può assumere i valori:', opts: ['0, 1, 2, 3…', 'Solo 0', '+½ oppure −½', '−1, 0, +1'], ans: 2, exp: 'Lo spin dell\'elettrone è quantizzato: ms = +½ (spin up ↑) o ms = −½ (spin down ↓). Ogni orbitale ospita max 2 elettroni.' },
+        ];
+
+        let qIdx = 0, score = 0, answered = false;
+
+        function renderQuestion() {
+            if (qIdx >= QUESTIONS.length) { renderScore(); return; }
+            const Q = QUESTIONS[qIdx];
+            answered = false;
+            const progress = (qIdx / QUESTIONS.length * 100).toFixed(0);
+            document.getElementById('quiz-progress').style.width = progress + '%';
+            document.getElementById('quiz-body').innerHTML = `
+    <div class="question-num">Domanda ${qIdx + 1} di ${QUESTIONS.length}</div>
+    <div class="question-text">${Q.q}</div>
+    <div class="quiz-options">
+      ${Q.opts.map((o, i) => `<button class="quiz-opt" id="qopt-${i}" onclick="answerQ(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <div class="quiz-nav">
+      <span style="font-size:0.82rem;color:var(--text-secondary)">Punteggio: ${score}/${qIdx}</span>
+      <button class="btn btn-primary" id="next-btn" onclick="nextQ()" style="display:none">Prossima →</button>
+    </div>
+  `;
+        }
+
+        function answerQ(chosen) {
+            if (answered) return;
+            answered = true;
+            const Q = QUESTIONS[qIdx];
+            const fb = document.getElementById('quiz-feedback');
+            document.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
+            document.getElementById(`qopt-${chosen}`).classList.add(chosen === Q.ans ? 'correct' : 'wrong');
+            if (chosen !== Q.ans) document.getElementById(`qopt-${Q.ans}`).classList.add('correct');
+            if (chosen === Q.ans) score++;
+            fb.textContent = (chosen === Q.ans ? '✅ Corretto! ' : '❌ Sbagliato. ') + Q.exp;
+            fb.className = 'quiz-feedback ' + (chosen === Q.ans ? 'feedback-correct' : 'feedback-wrong');
+            fb.style.display = 'block';
+            document.getElementById('next-btn').style.display = 'inline-flex';
+        }
+
+        function nextQ() { qIdx++; renderQuestion(); }
+
+        function renderScore() {
+            const pct = Math.round(score / QUESTIONS.length * 100);
+            const msg = pct >= 90 ? '🏆 Eccellente! Sei un esperto di fisica quantistica!' :
+                pct >= 70 ? '🎯 Ottimo! Hai una buona comprensione del modello atomico.' :
+                    pct >= 50 ? '📚 Discreto! Rileggi le sezioni dove hai sbagliato.' :
+                        '📖 Continua a studiare! Ogni grande fisico ha iniziato da zero.';
+            document.getElementById('quiz-progress').style.width = '100%';
+            document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-score">
+      <div class="score-circle" style="--pct:${pct}">
+        <div class="score-num">${score}/${QUESTIONS.length}</div>
+        <div class="score-label">${pct}%</div>
+      </div>
+      <h2 style="margin-bottom:0.75rem">${msg}</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem">Hai risposto correttamente a ${score} domande su ${QUESTIONS.length}.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="restartQuiz()">🔄 Ripeti il Quiz</button>
+        <a href="index.html" class="btn btn-outline">↩ Torna all'Inizio</a>
+      </div>
+    </div>
+  `;
+        }
+
+        function restartQuiz() { qIdx = 0; score = 0; renderQuestion(); }
+
+        renderQuestion();
+    </script>
+</body>
+
+</html>

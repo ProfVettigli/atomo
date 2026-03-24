@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tavola Periodica Interattiva | AtomQuant</title>
+    <meta name="description"
+        content="Tavola periodica interattiva: clicca su ogni elemento per scoprire proprietà, configurazione elettronica e raggio atomico." />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        .pt-wrapper {
+            overflow-x: auto;
+            padding: 1rem 0 2rem;
+        }
+
+        .pt-grid {
+            display: grid;
+            grid-template-columns: repeat(18, 48px);
+            grid-template-rows: repeat(10, 52px);
+            gap: 3px;
+            min-width: 900px;
+            margin: 0 auto;
+            width: fit-content;
+        }
+
+        .el {
+            border-radius: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            position: relative;
+            overflow: hidden;
+            padding: 2px;
+        }
+
+        .el::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent);
+            pointer-events: none;
+        }
+
+        .el:hover {
+            transform: scale(1.18);
+            z-index: 20;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .el.selected {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+            transform: scale(1.18);
+            z-index: 20;
+        }
+
+        .el-num {
+            font-size: 0.52rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1;
+        }
+
+        .el-sym {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .el-name {
+            font-size: 0.44rem;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1;
+            text-align: center;
+        }
+
+        /* Category colors */
+        .cat-alkali {
+            background: rgba(239, 68, 68, 0.22);
+        }
+
+        .cat-alkaline {
+            background: rgba(245, 158, 11, 0.22);
+        }
+
+        .cat-lanthanide {
+            background: rgba(236, 72, 153, 0.18);
+        }
+
+        .cat-actinide {
+            background: rgba(139, 92, 246, 0.18);
+        }
+
+        .cat-transition {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .cat-post {
+            background: rgba(20, 184, 166, 0.2);
+        }
+
+        .cat-metalloid {
+            background: rgba(16, 185, 129, 0.18);
+        }
+
+        .cat-nonmetal {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .cat-halogen {
+            background: rgba(6, 182, 212, 0.2);
+        }
+
+        .cat-noble {
+            background: rgba(168, 85, 247, 0.2);
+        }
+
+        /* Panel */
+        .el-panel {
+            background: rgba(10, 22, 40, 0.95);
+            border: 1px solid var(--border-bright);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s;
+        }
+
+        .el-panel-header {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .el-big-symbol {
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .el-big-sym {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .el-big-num {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .el-big-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .el-big-cat {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .el-props {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .el-prop {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 0.9rem;
+        }
+
+        .el-prop-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+
+        .el-prop-val {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* RADIUS VIZ */
+        .radius-viz {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .radius-circle {
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s cubic-bezier(.34, 1.56, .64, 1);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Legend */
+        .pt-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* Highlight on hover category */
+        .pt-grid:hover .el {
+            opacity: 0.55;
+        }
+
+        .pt-grid .el:hover {
+            opacity: 1 !important;
+        }
+
+        /* Config display */
+        .config-display {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.88rem;
+            color: var(--accent-cyan);
+            word-break: break-all;
+            line-height: 1.6;
+        }
+
+        .placeholder-panel {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .placeholder-panel .big-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a class="nav-logo" href="index.html">⚛ AtomQuant</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Modello Atomico</a></li>
+                <li><a href="page2.html" class="active">Tavola Periodica</a></li>
+                <li><a href="page3.html">Config. Elettronica</a></li>
+                <li><a href="page4.html">Atomi, Ioni & Isotopi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero" style="padding-top:3.5rem;padding-bottom:2rem">
+            <div class="hero-badge">🧪 Chimica Quantistica</div>
+            <h1>La <span class="gradient-text">Tavola Periodica</span> degli Elementi</h1>
+            <p class="hero-desc">Le proprietà chimiche degli elementi dipendono dalla loro configurazione elettronica.
+                Clicca su un elemento per esplorarne le proprietà!</p>
+        </div>
+
+        <div class="section" style="padding-top:0">
+            <!-- Legend -->
+            <div class="pt-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(239,68,68,0.6)"></div>Metalli alcalini
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(245,158,11,0.6)"></div>Alcalino-terrosi
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(59,130,246,0.6)"></div>Metalli di transizione
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(20,184,166,0.6)"></div>Post-metalli
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(16,185,129,0.6)"></div>Metalloidi
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(34,197,94,0.6)"></div>Non metalli
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(6,182,212,0.6)"></div>Alogeni
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(168,85,247,0.6)"></div>Gas nobili
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(236,72,153,0.6)"></div>Lantanidi
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(139,92,246,0.6)"></div>Attinidi
+                </div>
+            </div>
+
+            <!-- Periodic Table Grid -->
+            <div class="pt-wrapper">
+                <div class="pt-grid" id="pt-grid"></div>
+            </div>
+
+            <!-- Detail Panel -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem;align-items:start"
+                id="detail-area">
+                <div class="el-panel" id="el-panel">
+                    <div class="placeholder-panel">
+                        <div class="big-icon">🔬</div>
+                        <p>Clicca su un elemento della tavola periodica per visualizzarne le proprietà dettagliate.</p>
+                    </div>
+                </div>
+                <div class="el-panel" id="radius-panel">
+                    <div class="placeholder-panel">
+                        <div class="big-icon">📏</div>
+                        <p>Seleziona un elemento per vedere la visualizzazione del raggio atomico e il confronto con
+                            altri elementi.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-nav">
+            <a href="index.html" class="btn btn-outline">← Modello Atomico</a>
+            <a href="page3.html" class="btn btn-primary">Configurazione Elettronica →</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>⚛ AtomQuant – Fisica Quantistica Interattiva &nbsp;|&nbsp; Pagina 2 di 4</p>
+    </footer>
+
+    <script>
+        // ─── ELEMENT DATA ───
+        const ELEMENTS = [
+            // Z, sym, name, cat, group, period, mass, config, radius, EN, melt, boil, phase, desc
+            [1, 'H', 'Idrogeno', 'nonmetal', 1, 1, 1.008, '1s¹', 53, 2.20, -259, -253, 'Gas', 'Il più abbondante elemento dell\'universo. Fondamentale per la vita e il combustibile delle stelle.'],
+            [2, 'He', 'Elio', 'noble', 18, 1, 4.003, '1s²', 31, 0, -272, -269, 'Gas', 'Gas nobile inerte. Usato in palloncini e come refrigerante criogenico.'],
+            [3, 'Li', 'Litio', 'alkali', 1, 2, 6.941, '[He] 2s¹', 167, 0.98, 180, 1342, 'Solido', 'Metallo alcalino leggero. Usato in batterie e psicofarmaci.'],
+            [4, 'Be', 'Berillio', 'alkaline', 2, 2, 9.012, '[He] 2s²', 112, 1.57, 1287, 2470, 'Solido', 'Metallo leggero e resistente. Usato nell\'industria aerospaziale.'],
+            [5, 'B', 'Boro', 'metalloid', 13, 2, 10.81, '[He] 2s² 2p¹', 87, 2.04, 2075, 4000, 'Solido', 'Metalloide essenziale. Usato in vetro borosilicato e semiconduttori.'],
+            [6, 'C', 'Carbonio', 'nonmetal', 14, 2, 12.011, '[He] 2s² 2p²', 67, 2.55, 3550, 4827, 'Solido', 'Base della vita organica. Esiste come grafite, diamante e fullereni.'],
+            [7, 'N', 'Azoto', 'nonmetal', 15, 2, 14.007, '[He] 2s² 2p³', 56, 3.04, -210, -196, 'Gas', '78% dell\'atmosfera terrestre. fondamentale per proteine e DNA.'],
+            [8, 'O', 'Ossigeno', 'nonmetal', 16, 2, 15.999, '[He] 2s² 2p⁴', 48, 3.44, -218, -183, 'Gas', 'Essenziale per la respirazione. Il terzo elemento più abbondante dell\'universo.'],
+            [9, 'F', 'Fluoro', 'halogen', 17, 2, 18.998, '[He] 2s² 2p⁵', 42, 3.98, -220, -188, 'Gas', 'L\'elemento più elettronegativo. Reagisce violentemente con quasi tutte le sostanze.'],
+            [10, 'Ne', 'Neon', 'noble', 18, 2, 20.180, '[He] 2s² 2p⁶', 38, 0, -249, -246, 'Gas', 'Gas nobile. Usato in insegne luminose per il caratteristico colore arancione-rossa.'],
+            [11, 'Na', 'Sodio', 'alkali', 1, 3, 22.990, '[Ne] 3s¹', 190, 0.93, 98, 883, 'Solido', 'Metallo alcalino morbido. Componente del sale da cucina (NaCl). Reattivo con l\'acqua.'],
+            [12, 'Mg', 'Magnesio', 'alkaline', 2, 3, 24.305, '[Ne] 3s²', 145, 1.31, 650, 1090, 'Solido', 'Metallo leggero e resistente. Essenziale per la clorofilla nelle piante.'],
+            [13, 'Al', 'Alluminio', 'post', 13, 3, 26.982, '[Ne] 3s² 3p¹', 118, 1.61, 660, 2519, 'Solido', 'Metallo più abbondante nella crosta terrestre. Leggero e resistente alla corrosione.'],
+            [14, 'Si', 'Silicio', 'metalloid', 14, 3, 28.086, '[Ne] 3s² 3p²', 110, 1.90, 1414, 3265, 'Solido', 'Fondamento dell\'elettronica moderna. Il secondo elemento più abbondante sulla Terra.'],
+            [15, 'P', 'Fosforo', 'nonmetal', 15, 3, 30.974, '[Ne] 3s² 3p³', 98, 2.19, 44, 280, 'Solido', 'Essenziale per DNA e ATP. Esiste in forme allotropiche bianca e rossa.'],
+            [16, 'S', 'Zolfo', 'nonmetal', 16, 3, 32.065, '[Ne] 3s² 3p⁴', 88, 2.58, 113, 445, 'Solido', 'Non metallo giallo. Usato in fertilizzanti, gomma vulcanizzata e acido solforico.'],
+            [17, 'Cl', 'Cloro', 'halogen', 17, 3, 35.453, '[Ne] 3s² 3p⁵', 79, 3.16, -101, -34, 'Gas', 'Alogeno verde-giallastro. Usato per disinfettare l\'acqua. Forma il sale con il sodio.'],
+            [18, 'Ar', 'Argon', 'noble', 18, 3, 39.948, '[Ne] 3s² 3p⁶', 71, 0, -189, -186, 'Gas', 'Gas nobile, terzo gas più abbondante nell\'aria. Usato come atmosfera inerte nella saldatura.'],
+            [19, 'K', 'Potassio', 'alkali', 1, 4, 39.098, '[Ar] 4s¹', 243, 0.82, 64, 759, 'Solido', 'Metallo alcalino. Fondamentale per la trasmissione nervosa negli organismi viventi.'],
+            [20, 'Ca', 'Calcio', 'alkaline', 2, 4, 40.078, '[Ar] 4s²', 194, 1.00, 842, 1484, 'Solido', 'Componente principale di ossa e denti. Regola la contrazione muscolare.'],
+            [21, 'Sc', 'Scandio', 'transition', 3, 4, 44.956, '[Ar] 3d¹ 4s²', 184, 1.36, 1541, 2836, 'Solido', 'Metallo di transizione raro. Usato in leghe leggere ad alte prestazioni.'],
+            [22, 'Ti', 'Titanio', 'transition', 4, 4, 47.867, '[Ar] 3d² 4s²', 176, 1.54, 1668, 3287, 'Solido', 'Metallo resistente e leggero. Usato in aerospazio, medicina e impianti dentali.'],
+            [23, 'V', 'Vanadio', 'transition', 5, 4, 50.942, '[Ar] 3d³ 4s²', 171, 1.63, 1910, 3407, 'Solido', 'Metallo di transizione duro. Usato in acciai speciali e catalizzatori.'],
+            [24, 'Cr', 'Cromo', 'transition', 6, 4, 51.996, '[Ar] 3d⁵ 4s¹', 166, 1.66, 1907, 2671, 'Solido', 'Conferisce resistenza all\'acciaio inossidabile. Usato per ricoperture galvaniche.'],
+            [25, 'Mn', 'Manganese', 'transition', 7, 4, 54.938, '[Ar] 3d⁵ 4s²', 161, 1.55, 1246, 2061, 'Solido', 'Metallo di transizione. Essenziale per la produzione di acciaio.'],
+            [26, 'Fe', 'Ferro', 'transition', 8, 4, 55.845, '[Ar] 3d⁶ 4s²', 156, 1.83, 1538, 2861, 'Solido', 'Il metallo più usato al mondo. Prodotto nelle stelle di seconda generazione.'],
+            [27, 'Co', 'Cobalto', 'transition', 9, 4, 58.933, '[Ar] 3d⁷ 4s²', 152, 1.88, 1495, 2927, 'Solido', 'Metallo magnetico. Componente della vitamina B12 e delle leghe ad alta temperatura.'],
+            [28, 'Ni', 'Nichel', 'transition', 10, 4, 58.693, '[Ar] 3d⁸ 4s²', 149, 1.91, 1455, 2913, 'Solido', 'Metallo resistente. Usato in acciai inossidabili e batterie nichel-metallo idruro.'],
+            [29, 'Cu', 'Rame', 'transition', 11, 4, 63.546, '[Ar] 3d¹⁰ 4s¹', 145, 1.90, 1085, 2562, 'Solido', 'Eccellente conduttore elettrico. Usato in cavi, monete e impianti idraulici.'],
+            [30, 'Zn', 'Zinco', 'transition', 12, 4, 65.38, '[Ar] 3d¹⁰ 4s²', 142, 1.65, 420, 907, 'Solido', 'Metallo essenziale per gli enzimi. Usato per la zincatura dell\'acciaio.'],
+            [31, 'Ga', 'Gallio', 'post', 13, 4, 69.723, '[Ar] 3d¹⁰ 4s² 4p¹', 136, 1.81, 30, 2403, 'Solido', 'Metallo che si scioglie in mano! Usato in LED e semiconduttori.'],
+            [32, 'Ge', 'Germanio', 'metalloid', 14, 4, 72.640, '[Ar] 3d¹⁰ 4s² 4p²', 125, 2.01, 938, 2833, 'Solido', 'Metalloide. Usato in fibre ottiche, infrarossi e transistor a semiconduttore.'],
+            [33, 'As', 'Arsenico', 'metalloid', 15, 4, 74.922, '[Ar] 3d¹⁰ 4s² 4p³', 114, 2.18, 613, 887, 'Solido', 'Metalloide tossico. Usato in semiconduttori (GaAs) e pesticidi.'],
+            [34, 'Se', 'Selenio', 'nonmetal', 16, 4, 78.96, '[Ar] 3d¹⁰ 4s² 4p⁴', 103, 2.55, 221, 685, 'Solido', 'Non metallo essenziale in tracce. Usato in cellule fotovoltaiche e vetro.'],
+            [35, 'Br', 'Bromo', 'halogen', 17, 4, 79.904, '[Ar] 3d¹⁰ 4s² 4p⁵', 94, 2.96, -7, 59, 'Liquido', 'Uno dei due elementi liquidi a temperatura ambiente. Usato in ritardanti di fiamma.'],
+            [36, 'Kr', 'Kripton', 'noble', 18, 4, 83.798, '[Ar] 3d¹⁰ 4s² 4p⁶', 88, 0, -157, -153, 'Gas', 'Gas nobile. Usato in lampade fluorescenti ad alta intensità e laser.'],
+            [37, 'Rb', 'Rubidio', 'alkali', 1, 5, 85.468, '[Kr] 5s¹', 265, 0.82, 39, 688, 'Solido', 'Metallo alcalino morbido e reattivo. Usato in orologi atomici e celle fotovoltaiche.'],
+            [38, 'Sr', 'Stronzio', 'alkaline', 2, 5, 87.62, '[Kr] 5s²', 219, 0.95, 777, 1382, 'Solido', 'Metallo alcalino-terroso. Composti usati nei fuochi d\'artificio (colore rosso).'],
+            [47, 'Ag', 'Argento', 'transition', 11, 5, 107.87, '[Kr] 4d¹⁰ 5s¹', 165, 1.93, 962, 2162, 'Solido', 'Miglior conduttore elettrico e termico. Proprietà antibatteriche naturali.'],
+            [50, 'Sn', 'Stagno', 'post', 14, 5, 118.71, '[Kr] 4d¹⁰ 5s² 5p²', 145, 1.96, 232, 2602, 'Solido', 'Metallo duttile noto fin dall\'antichità. Usato in latta e leghe (bronzo).'],
+            [53, 'I', 'Iodio', 'halogen', 17, 5, 126.90, '[Kr] 4d¹⁰ 5s² 5p⁵', 115, 2.66, 114, 184, 'Solido', 'Alogeno essenziale per la tiroide. Il solo alogeno solido a temperatura ambiente.'],
+            [54, 'Xe', 'Xenon', 'noble', 18, 5, 131.29, '[Kr] 4d¹⁰ 5s² 5p⁶', 108, 0, -112, -108, 'Gas', 'Gas nobile denso. Usato in lampade flash, propulsori ionici e anestesia.'],
+            [55, 'Cs', 'Cesio', 'alkali', 1, 6, 132.91, '[Xe] 6s¹', 298, 0.79, 29, 671, 'Solido', 'Il più elettropositivo degli elementi stabili. Base degli orologi atomici al cesio.'],
+            [56, 'Ba', 'Bario', 'alkaline', 2, 6, 137.33, '[Xe] 6s²', 253, 0.89, 729, 1805, 'Solido', 'Metallo pesante. Usato in mezzi di contrasto radiologici e smalti ceramici.'],
+            [79, 'Au', 'Oro', 'transition', 11, 6, 196.97, '[Xe] 4f¹⁴ 5d¹⁰ 6s¹', 174, 2.54, 1064, 2856, 'Solido', 'Metallo prezioso e nobile. Ottimo conduttore, non si corrode mai.'],
+            [80, 'Hg', 'Mercurio', 'transition', 12, 6, 200.59, '[Xe] 4f¹⁴ 5d¹⁰ 6s²', 171, 2.00, -39, 357, 'Liquido', 'Unico metallo liquido a temperatura ambiente. Altamente tossico.'],
+            [82, 'Pb', 'Piombo', 'post', 14, 6, 207.2, '[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²', 175, 2.33, 327, 1749, 'Solido', 'Metallo denso. Usato in schermature per radiazioni e batterie al piombo.'],
+            [86, 'Rn', 'Radon', 'noble', 18, 6, 222, '[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶', 145, 0, -71, -62, 'Gas', 'Gas nobile radioattivo. Può accumularsi in edifici causando rischi per la salute.'],
+            [57, 'La', 'Lantanio', 'lanthanide', 3, 6, 138.91, '[Xe] 5d¹ 6s²', 240, 1.10, 920, 3464, 'Solido', 'Prototipo dei lantanidi. Usato in ottiche di alta qualità e catalizzatori.'],
+            [92, 'U', 'Uranio', 'actinide', 3, 7, 238.03, '[Rn] 5f³ 6d¹ 7s²', 186, 1.38, 1135, 4131, 'Solido', 'Elemento radioattivo. Usato come combustibile nucleare e nella datazione radiometrica.'],
+        ];
+
+        const catStyle = {
+            alkali: { bg: 'rgba(239,68,68,0.22)', color: '#fca5a5', name: 'Metallo alcalino' },
+            alkaline: { bg: 'rgba(245,158,11,0.22)', color: '#fcd34d', name: 'Alcalino-terroso' },
+            transition: { bg: 'rgba(59,130,246,0.22)', color: '#93c5fd', name: 'Metallo di transizione' },
+            post: { bg: 'rgba(20,184,166,0.22)', color: '#5eead4', name: 'Post-metallo' },
+            metalloid: { bg: 'rgba(16,185,129,0.22)', color: '#6ee7b7', name: 'Metalloide' },
+            nonmetal: { bg: 'rgba(34,197,94,0.22)', color: '#86efac', name: 'Non metallo' },
+            halogen: { bg: 'rgba(6,182,212,0.22)', color: '#67e8f9', name: 'Alogeno' },
+            noble: { bg: 'rgba(168,85,247,0.22)', color: '#d8b4fe', name: 'Gas nobile' },
+            lanthanide: { bg: 'rgba(236,72,153,0.22)', color: '#f9a8d4', name: 'Lantanide' },
+            actinide: { bg: 'rgba(139,92,246,0.22)', color: '#c4b5fd', name: 'Attinide' },
+        };
+
+        // Full 118-element positional data: [Z, col, row]
+        const positions = [
+            [1, 1, 1], [2, 18, 1],
+            [3, 1, 2], [4, 2, 2], [5, 13, 2], [6, 14, 2], [7, 15, 2], [8, 16, 2], [9, 17, 2], [10, 18, 2],
+            [11, 1, 3], [12, 2, 3], [13, 13, 3], [14, 14, 3], [15, 15, 3], [16, 16, 3], [17, 17, 3], [18, 18, 3],
+            [19, 1, 4], [20, 2, 4], [21, 3, 4], [22, 4, 4], [23, 5, 4], [24, 6, 4], [25, 7, 4], [26, 8, 4], [27, 9, 4], [28, 10, 4], [29, 11, 4], [30, 12, 4], [31, 13, 4], [32, 14, 4], [33, 15, 4], [34, 16, 4], [35, 17, 4], [36, 18, 4],
+            [37, 1, 5], [38, 2, 5], [47, 11, 5], [50, 14, 5], [53, 17, 5], [54, 18, 5],
+            [55, 1, 6], [56, 2, 6], [57, 3, 6], [79, 11, 6], [80, 12, 6], [82, 14, 6], [86, 18, 6],
+            [92, 3, 7],
+        ];
+
+        const grid = document.getElementById('pt-grid');
+        const elMap = {};
+        ELEMENTS.forEach(e => { elMap[e[0]] = e; });
+
+        positions.forEach(([z, col, row]) => {
+            const el = elMap[z];
+            if (!el) return;
+            const [, sym, name, cat] = el;
+            const cs = catStyle[cat] || catStyle.nonmetal;
+            const div = document.createElement('div');
+            div.className = `el cat-${cat}`;
+            div.style.cssText = `grid-column:${col};grid-row:${row};background:${cs.bg};`;
+            div.innerHTML = `<div class="el-num">${z}</div><div class="el-sym" style="color:${cs.color}">${sym}</div><div class="el-name">${name.split(' ')[0]}</div>`;
+            div.dataset.z = z;
+            div.addEventListener('click', () => selectElement(z, div));
+            grid.appendChild(div);
+
+            // lanthanide/actinide row labels
+            if (z === 57) {
+                const lbl = document.createElement('div');
+                lbl.className = 'el cat-lanthanide';
+                lbl.style.cssText = `grid-column:3;grid-row:8;background:rgba(236,72,153,0.22);`;
+                lbl.innerHTML = `<div class="el-sym" style="color:#f9a8d4;font-size:0.65rem">57-71</div><div class="el-name">Lantanidi</div>`;
+                grid.appendChild(lbl);
+            }
+            if (z === 92) {
+                const lbl2 = document.createElement('div');
+                lbl2.className = 'el cat-actinide';
+                lbl2.style.cssText = `grid-column:3;grid-row:9;background:rgba(139,92,246,0.22);`;
+                lbl2.innerHTML = `<div class="el-sym" style="color:#c4b5fd;font-size:0.65rem">89-103</div><div class="el-name">Attinidi</div>`;
+                grid.appendChild(lbl2);
+            }
+        });
+
+        let selected = null;
+
+        function selectElement(z, div) {
+            if (selected) selected.classList.remove('selected');
+            div.classList.add('selected');
+            selected = div;
+
+            const [, sym, name, cat, , period, mass, config, radius, en, melt, boil, phase, desc] = elMap[z];
+            const cs = catStyle[cat] || catStyle.nonmetal;
+
+            document.getElementById('el-panel').innerHTML = `
+    <div class="el-panel-header">
+      <div class="el-big-symbol" style="background:${cs.bg};border:1px solid rgba(255,255,255,0.12)">
+        <div class="el-big-sym" style="color:${cs.color}">${sym}</div>
+        <div class="el-big-num">${z}</div>
+      </div>
+      <div>
+        <div class="el-big-name">${name}</div>
+        <div class="el-big-cat"><span class="tag" style="background:${cs.bg};color:${cs.color};border:1px solid rgba(255,255,255,0.1)">${catStyle[cat].name}</span></div>
+      </div>
+    </div>
+    <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:1.25rem">${desc}</p>
+    <div class="el-props">
+      <div class="el-prop"><div class="el-prop-label">Numero atomico (Z)</div><div class="el-prop-val" style="color:${cs.color}">${z}</div></div>
+      <div class="el-prop"><div class="el-prop-label">Massa atomica</div><div class="el-prop-val">${mass} u</div></div>
+      <div class="el-prop"><div class="el-prop-label">Periodo / Gruppo</div><div class="el-prop-val">${period} / ${[, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18][elMap[z][4]] || '—'}</div></div>
+      <div class="el-prop"><div class="el-prop-label">Fase (25°C)</div><div class="el-prop-val">${phase}</div></div>
+      <div class="el-prop"><div class="el-prop-label">Punto di fusione</div><div class="el-prop-val">${melt}°C</div></div>
+      <div class="el-prop"><div class="el-prop-label">Punto di ebollizione</div><div class="el-prop-val">${boil}°C</div></div>
+      <div class="el-prop"><div class="el-prop-label">Elettronegatività</div><div class="el-prop-val">${en > 0 ? en : '—'}</div></div>
+      <div class="el-prop"><div class="el-prop-label">Raggio atomico</div><div class="el-prop-val">${radius} pm</div></div>
+    </div>
+    <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem">Configurazione elettronica:</div>
+    <div class="config-display">${config}</div>
+  `;
+
+            // Radius visualization
+            const REF_ELEM = [[1, 'H', 53, '#67e8f9'], [6, 'C', 67, '#86efac'], [11, 'Na', 190, '#fda4af'], [19, 'K', 243, '#fcd34d']];
+            const maxR = Math.max(radius, ...REF_ELEM.map(r => r[2]), 1);
+            const scale = el => Math.round((el / maxR) * 120);
+
+            const refHtml = REF_ELEM.filter(r => r[0] !== z).map(([rz, rsym, rrad, rcol]) => `
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
+      <div class="radius-circle" style="width:${scale(rrad) + 8}px;height:${scale(rrad) + 8}px;background:${catStyle[elMap[rz]?.[3] || 'nonmetal']?.bg || 'rgba(255,255,255,0.1)'};border:1px solid rgba(255,255,255,0.15)">
+        <span style="font-size:${Math.max(0.55, scale(rrad) / 120)}rem">${rsym}</span>
+      </div>
+      <div>
+        <div style="font-size:0.82rem;font-weight:600">${rsym}</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary)">${rrad} pm</div>
+      </div>
+    </div>
+  `).join('');
+
+            document.getElementById('radius-panel').innerHTML = `
+    <h3 style="margin-bottom:0.25rem">📏 Raggio Atomico</h3>
+    <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1.5rem">Distanza dal nucleo al limite esterno della nuvola elettronica (picometri, pm).</p>
+    <div class="radius-viz" style="margin-bottom:1.5rem">
+      <div class="radius-circle" style="width:${scale(radius) + 8}px;height:${scale(radius) + 8}px;background:radial-gradient(circle at 35% 35%, ${cs.color}40, ${cs.bg});border:2px solid ${cs.color};box-shadow:0 0 30px ${cs.color}50;margin:0 auto">
+        <span style="font-size:${Math.max(0.7, scale(radius) / 100)}rem;font-weight:700">${sym}</span>
+      </div>
+      <div style="margin-top:0.75rem;font-size:1.1rem;font-weight:700;color:${cs.color}">${radius} pm</div>
+    </div>
+    <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem">Confronto con altri elementi:</div>
+    ${refHtml}
+    <div class="info-box" style="margin-top:1rem">
+      <p style="font-size:0.8rem">💡 Il raggio atomico <strong>diminuisce</strong> da sinistra a destra in un periodo (maggiore carica nucleare attrae gli elettroni), e <strong>aumenta</strong> dall'alto al basso in un gruppo (nuovi livelli energetici).</p>
+    </div>
+  `;
+        }
+    </script>
+</body>
+
+</html>
